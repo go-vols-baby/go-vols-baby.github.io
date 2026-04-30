@@ -30,21 +30,21 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Data & Policy",
+    "title": "TN Williams Goes to Washington",
     "section": "",
-    "text": "Welcome. I’m a consultant economic analyst who builds data-driven arguments about policy, markets, and cities. This site is where I publish analysis, maps, and the occasional polemic backed by numbers."
+    "text": "Welcome. I’m a recovering consultant who likes coding/writing. This site is where I publish analysis, maps, and the occasional polemic backed by numbers."
   },
   {
     "objectID": "index.html#whats-here",
     "href": "index.html#whats-here",
-    "title": "Data & Policy",
+    "title": "TN Williams Goes to Washington",
     "section": "What’s Here",
     "text": "What’s Here\n\nBlog — Short-form analysis and data explorations\nProjects — Longer-form interactive work (maps, dashboards, models)"
   },
   {
     "objectID": "index.html#current-focus",
     "href": "index.html#current-focus",
-    "title": "Data & Policy",
+    "title": "TN Williams Goes to Washington",
     "section": "Current Focus",
     "text": "Current Focus\nDC Food Access & Urban Heat — Mapping the intersection of food deserts, extreme heat, transit gaps, and the economic shock of federal workforce reductions on DC’s restaurant and retail landscape.\nBuilt with Quarto and R. Published on GitHub Pages."
   },

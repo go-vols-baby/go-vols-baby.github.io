@@ -1,9 +1,9 @@
 ---
-title: "Data & Policy"
-subtitle: "Economic analysis with public data"
+title: "TN Williams Goes to Washington"
+subtitle: "Exploring the swamp (affectionate) with the power of actionable synergy insights business terms."
 ---
 
-Welcome. I'm a consultant economic analyst who builds data-driven arguments about policy, markets, and cities. This site is where I publish analysis, maps, and the occasional polemic backed by numbers.
+Welcome. I'm a recovering consultant who likes coding/writing. This site is where I publish analysis, maps, and the occasional polemic backed by numbers.
 
 ## What's Here
 
