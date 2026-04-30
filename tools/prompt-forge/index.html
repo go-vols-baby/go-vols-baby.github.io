@@ -20,464 +20,198 @@
   --purple: #a78bfa;
   --font-mono: 'Consolas', 'Monaco', monospace;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-}
-
-.app {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  min-height: 100vh;
-}
-
-.header {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-h1 {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--accent);
-}
-
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.app { max-width: 1400px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; min-height: 100vh; }
+.header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+h1 { font-size: 20px; font-weight: 600; color: var(--accent); }
 h1 span { color: var(--text-dim); font-weight: 400; font-size: 14px; margin-left: 12px; }
-
-.api-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-dim);
-  cursor: pointer;
-}
-
-.api-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--red);
-}
-
+.api-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); cursor: pointer; }
+.api-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
 .api-dot.connected { background: var(--green); }
-
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; max-height: calc(100vh - 100px); }
+.panel-section { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+label .hint { color: var(--text-dim); font-weight: 400; text-transform: none; letter-spacing: normal; font-size: 11px; font-style: italic; }
+label .required { color: var(--red); }
+input[type="text"], textarea, select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-family: inherit; font-size: 13px;
+  padding: 8px 12px; line-height: 1.4;
 }
-
-.panel h2 {
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-dim);
-}
-
-textarea {
-  width: 100%;
-  min-height: 120px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  padding: 12px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-textarea:focus { outline: none; border-color: var(--accent); }
-
-.controls {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-select, button {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 6px;
-  padding: 8px 14px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-select:focus, button:focus { outline: none; border-color: var(--accent); }
-
-button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-  font-weight: 600;
-}
-
-button.ai {
-  background: rgba(167, 139, 250, 0.15);
-  border-color: var(--purple);
-  color: var(--purple);
-  font-weight: 600;
-}
-
+textarea { font-family: var(--font-mono); resize: vertical; }
+textarea.task { min-height: 80px; }
+textarea.short { min-height: 50px; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+input.empty, textarea.empty { border-color: var(--orange); border-style: dashed; }
+input.filled, textarea.filled { border-color: var(--green); }
+button { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.primary:hover { background: var(--accent-dim); }
+button.ai { background: rgba(167, 139, 250, 0.15); border-color: var(--purple); color: var(--purple); font-weight: 600; }
 button.ai:hover { background: rgba(167, 139, 250, 0.25); }
 button.ai.loading { opacity: 0.6; cursor: wait; }
-button.primary:hover { background: var(--accent-dim); }
 button:hover { background: var(--border); }
-
-.rewrite-section {
-  background: var(--surface2);
-  border: 1px solid var(--purple);
-  border-radius: 6px;
-  padding: 14px;
-  display: none;
-}
-
-.rewrite-section.visible { display: block; }
-
-.rewrite-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.rewrite-header h3 {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: var(--purple);
-  letter-spacing: 0.05em;
-}
-
-.rewrite-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.rewrite-actions button {
-  font-size: 11px;
-  padding: 4px 10px;
-}
-
-.rewrite-preview {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text);
-  white-space: pre-wrap;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.diff-add { color: var(--green); }
-.diff-context { color: var(--text-dim); }
-
-.checklist {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.check-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
-.check-item.satisfied { color: var(--green); }
-.check-item.missing { color: var(--orange); }
-
-.check-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  flex-shrink: 0;
-}
-
-.check-item.satisfied .check-icon { background: var(--green); color: var(--bg); border-color: var(--green); }
-
-.followups {
-  background: var(--surface2);
-  border-radius: 6px;
-  padding: 12px;
-}
-
-.followups h3 {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin-bottom: 8px;
-  letter-spacing: 0.05em;
-}
-
-.followup-item {
-  font-size: 13px;
-  color: var(--text);
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.followup-item:last-child { border-bottom: none; }
-.followup-item:hover { color: var(--accent); }
-.followup-item::before { content: "?"; color: var(--orange); font-weight: 700; flex-shrink: 0; }
-
-.tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.tab {
-  padding: 8px 16px;
-  font-size: 13px;
-  color: var(--text-dim);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  background: none;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-}
-
-.tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
-.output-area {
-  flex: 1;
-  min-height: 300px;
-  background: var(--surface2);
-  border-radius: 6px;
-  padding: 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.6;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.output-area .tag { color: var(--accent); }
-.output-area .attr { color: var(--orange); }
-
-.copy-btn {
-  align-self: flex-end;
-  font-size: 12px;
-  padding: 6px 12px;
-}
-
-.copy-btn.copied { color: var(--green); border-color: var(--green); }
-
-.score {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: var(--surface2);
-  border-radius: 6px;
-}
-
-.score-bar {
-  flex: 1;
-  height: 6px;
-  background: var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.score-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s, background 0.3s;
-}
-
-.score-label {
-  font-size: 13px;
-  font-weight: 600;
-  min-width: 36px;
-  text-align: right;
-}
-
-.context-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  cursor: pointer;
-}
-
+.controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.context-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 11px; padding: 3px 8px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
 .chip.active { border-color: var(--accent); color: var(--accent); background: rgba(108, 138, 255, 0.1); }
-
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 100;
-  justify-content: center;
-  align-items: center;
-}
-
+.score { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: var(--surface2); border-radius: 6px; }
+.score-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.score-fill { height: 100%; transition: width 0.3s, background 0.3s; }
+.score-label { font-size: 13px; font-weight: 600; min-width: 36px; text-align: right; }
+.tabs { display: flex; border-bottom: 1px solid var(--border); }
+.tab { padding: 8px 16px; font-size: 13px; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.output-area { flex: 1; min-height: 400px; background: var(--surface2); border-radius: 6px; padding: 16px; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; }
+.output-area .tag { color: var(--accent); }
+.output-area .assumed { color: var(--orange); background: rgba(251, 146, 60, 0.1); padding: 1px 4px; border-radius: 3px; }
+.copy-btn { align-self: flex-end; font-size: 12px; padding: 6px 12px; }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+.assumptions-list { background: rgba(251, 146, 60, 0.08); border-left: 3px solid var(--orange); padding: 10px 14px; border-radius: 4px; }
+.assumptions-list h4 { font-size: 11px; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; letter-spacing: 0.05em; }
+.assumptions-list ul { list-style: none; }
+.assumptions-list li { font-size: 12px; padding: 3px 0; color: var(--text); }
+.assumptions-list li::before { content: "→ "; color: var(--orange); }
+.rewrite-section { background: var(--surface2); border: 1px solid var(--purple); border-radius: 6px; padding: 12px; display: none; }
+.rewrite-section.visible { display: block; }
+.rewrite-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.rewrite-header h3 { font-size: 11px; text-transform: uppercase; color: var(--purple); letter-spacing: 0.05em; }
+.rewrite-actions { display: flex; gap: 6px; }
+.rewrite-actions button { font-size: 11px; padding: 3px 8px; }
+.rewrite-preview { font-family: var(--font-mono); font-size: 12px; line-height: 1.4; white-space: pre-wrap; max-height: 150px; overflow-y: auto; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; align-items: center; }
 .modal-overlay.visible { display: flex; }
-
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 28px;
-  max-width: 480px;
-  width: 90%;
-}
-
-.modal h2 { margin-bottom: 16px; color: var(--text); font-size: 16px; text-transform: none; letter-spacing: normal; }
-
-.modal p { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
-
-.modal input[type="password"] {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  padding: 10px 12px;
-  margin-bottom: 16px;
-}
-
-.modal input:focus { outline: none; border-color: var(--accent); }
-
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; max-width: 480px; width: 90%; }
+.modal h2 { margin-bottom: 14px; font-size: 16px; }
+.modal p { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; line-height: 1.5; }
+.modal input[type="password"], .modal select { margin-bottom: 12px; }
 .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; }
-
-.token-cost {
-  font-size: 11px;
-  color: var(--text-dim);
-  padding: 4px 8px;
-  background: var(--surface2);
-  border-radius: 4px;
-  display: none;
-}
-
+.token-cost { font-size: 11px; color: var(--text-dim); padding: 3px 8px; background: var(--surface2); border-radius: 4px; display: none; }
 .token-cost.visible { display: inline-block; }
-
-@media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; }
-}
+details { background: var(--surface2); border-radius: 6px; padding: 8px 12px; }
+details summary { cursor: pointer; font-size: 12px; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.05em; font-weight: 600; }
+details[open] summary { margin-bottom: 10px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 900px) { .app { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
 <div class="modal-overlay" id="apiModal">
   <div class="modal">
-    <h2>AI Provider Setup</h2>
-    <p style="margin-bottom:8px"><strong>Option 1 — OpenRouter (recommended):</strong> Go to <strong>openrouter.ai/keys</strong>, create a free account, generate a key. Free models available (no billing needed).</p>
-    <p style="margin-bottom:8px"><strong>Option 2 — Gemini:</strong> Go to <strong>aistudio.google.com/apikey</strong> and create a key.</p>
-    <p style="margin-bottom:14px">Keys are stored in your browser only.</p>
-    <select id="providerSelect" style="width:100%;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-size:13px;">
-      <option value="openrouter">OpenRouter (free models available)</option>
-      <option value="gemini">Google Gemini</option>
+    <h2>AI Rewrite Setup</h2>
+    <p><strong>Local (free, offline):</strong> Run Ollama with <code>llama3.2</code> pulled. No key needed — just select Ollama in the model dropdown.</p>
+    <p><strong>OpenRouter (cloud):</strong> Get a key at <strong>openrouter.ai/keys</strong>. Free models available.</p>
+    <select id="providerSelect" style="width:100%;">
+      <option value="openrouter">OpenRouter</option>
+      <option value="ollama">Ollama (no key needed)</option>
     </select>
-    <input type="password" id="apiKeyInput" placeholder="Paste your API key here...">
+    <input type="password" id="apiKeyInput" placeholder="Paste OpenRouter key (or leave blank for Ollama)..." style="width:100%;">
     <div class="modal-buttons">
       <button onclick="closeModal()">Cancel</button>
-      <button class="primary" onclick="saveApiKey()">Save Key</button>
+      <button class="primary" onclick="saveApiKey()">Save</button>
     </div>
   </div>
 </div>
 
 <div class="app">
   <div class="header">
-    <h1>Prompt Forge <span>AI-powered prompt translator</span></h1>
+    <h1>Prompt Forge <span>structured prompt builder</span></h1>
     <div class="api-status" onclick="openModal()">
       <div class="api-dot" id="apiDot"></div>
-      <span id="apiLabel">Gemini Flash: not connected</span>
+      <span id="apiLabel">click to setup</span>
     </div>
   </div>
 
   <div class="panel">
-    <h2>1. Your Role</h2>
-    <select id="roleSelect" style="width:100%;">
-      <option value="economist">Economist / data analyst</option>
-      <option value="developer">Software developer</option>
-      <option value="student">Student / learner</option>
-      <option value="writer">Writer / content creator</option>
-      <option value="researcher">Academic researcher</option>
-      <option value="consultant">Management consultant</option>
-      <option value="pm">Product manager</option>
-      <option value="custom">Custom (type below)</option>
-    </select>
-    <input type="text" id="customRole" placeholder="e.g. 'Healthcare policy analyst at a federal agency'" style="display:none;width:100%;margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:8px 12px;">
 
-    <h2 style="margin-top:12px">2. Raw Input</h2>
-    <textarea id="rawInput" placeholder="Type your messy prompt here... e.g. 'make me a map of grocery stores and income in dc'"></textarea>
+    <details open>
+      <summary>Identity</summary>
+      <div class="panel-section" style="margin-top:10px">
+        <label>Your role <span class="hint">who you are</span></label>
+        <select id="roleSelect">
+          <option value="economist">Economist / data analyst</option>
+          <option value="developer">Software developer</option>
+          <option value="student">Student / learner</option>
+          <option value="writer">Writer / content creator</option>
+          <option value="researcher">Academic researcher</option>
+          <option value="consultant">Management consultant</option>
+          <option value="pm">Product manager</option>
+          <option value="custom">Custom</option>
+        </select>
+        <input type="text" id="customRole" placeholder="e.g. 'Healthcare policy analyst'" style="display:none;">
+      </div>
+      <div class="panel-section" style="margin-top:8px">
+        <label>Context tags <span class="hint">applied to every prompt</span></label>
+        <div class="context-chips" id="contextChips">
+          <div class="chip active" data-ctx="r-user" onclick="toggleChip(this)">R / tidyverse</div>
+          <div class="chip" data-ctx="sql" onclick="toggleChip(this)">SQL</div>
+          <div class="chip" data-ctx="python" onclick="toggleChip(this)">Python</div>
+          <div class="chip" data-ctx="spatial" onclick="toggleChip(this)">Spatial (sf/leaflet)</div>
+          <div class="chip" data-ctx="dc-focus" onclick="toggleChip(this)">DC focus</div>
+          <div class="chip" data-ctx="publication" onclick="toggleChip(this)">Publication-quality</div>
+          <div class="chip" data-ctx="quarto" onclick="toggleChip(this)">Quarto output</div>
+          <div class="chip" data-ctx="concise" onclick="toggleChip(this)">Code only, no prose</div>
+          <div class="chip" data-ctx="excel" onclick="toggleChip(this)">Excel / CSV</div>
+          <div class="chip" data-ctx="dataviz" onclick="toggleChip(this)">Data viz focus</div>
+          <div class="chip" data-ctx="stats" onclick="toggleChip(this)">Statistical rigor</div>
+          <div class="chip" data-ctx="webscrape" onclick="toggleChip(this)">Web scraping</div>
+          <div class="chip" data-ctx="api" onclick="toggleChip(this)">API integration</div>
+          <div class="chip" data-ctx="beginner" onclick="toggleChip(this)">Explain simply</div>
+          <div class="chip" data-ctx="senior" onclick="toggleChip(this)">Senior-level</div>
+          <div class="chip" data-ctx="client" onclick="toggleChip(this)">Client deliverable</div>
+          <div class="chip" data-ctx="git" onclick="toggleChip(this)">Git workflow</div>
+        </div>
+        <textarea id="customContext" class="short" placeholder="Custom context (optional): persistent details you want included on every prompt..."></textarea>
+      </div>
+    </details>
+
+    <div class="panel-section">
+      <label>The Task <span class="required">required</span></label>
+      <textarea id="f_task" class="task" data-default="" placeholder="What do you actually want? Be as messy as you want — write a sentence, paste an idea, dump a thought..."></textarea>
+    </div>
+
+    <div class="panel-section">
+      <label>Why are you doing this? <span class="hint">default: personal exploration</span></label>
+      <input type="text" id="f_purpose" data-default="Personal exploration / sandbox work — no specific deliverable yet." placeholder="e.g. 'Building a slide for a Tuesday client meeting' or 'Blog post for my site'">
+    </div>
+
+    <div class="panel-section">
+      <label>Data or input <span class="hint">default: ask me what data is available</span></label>
+      <textarea id="f_data" class="short" data-default="No specific data source provided. Suggest what data sources would be appropriate, or ask me what I have access to before writing code." placeholder="e.g. 'DC Open Data grocery store dataset, ACS via tidycensus'"></textarea>
+    </div>
+
+    <div class="panel-section">
+      <label>Output format <span class="hint">default: working code, code-only output</span></label>
+      <input type="text" id="f_output" data-default="A complete, runnable script with minimal inline comments. No prose outside the code block." placeholder="e.g. 'A .qmd page with leaflet map' or 'A SQL query'">
+    </div>
+
+    <div class="panel-section">
+      <label>Scope / boundaries <span class="hint">default: no scope limits</span></label>
+      <input type="text" id="f_scope" data-default="No specific scope limits. Use sensible defaults and flag what choices you made." placeholder="e.g. 'Wards 7 and 8 only, year 2023' or '500 most recent rows'">
+    </div>
+
+    <div class="panel-section">
+      <label>Things to avoid <span class="hint">default: none</span></label>
+      <input type="text" id="f_avoid" data-default="" placeholder="e.g. 'No base R plots, no Python, avoid deprecated packages'">
+    </div>
+
+    <div class="panel-section">
+      <label>Examples or references <span class="hint">default: none</span></label>
+      <textarea id="f_example" class="short" data-default="" placeholder="e.g. 'Like a NYT-style choropleth map' or paste a URL/code snippet you want to model after"></textarea>
+    </div>
+
+    <details>
+      <summary>Advanced — assumptions to flag</summary>
+      <div class="panel-section" style="margin-top:10px">
+        <label>Anything ambiguous?</label>
+        <textarea id="f_assumptions" class="short" placeholder="e.g. 'I'm not sure if I want static or interactive output' — Claude will choose and flag the choice"></textarea>
+      </div>
+    </details>
 
     <div class="controls">
-      <select id="taskType">
-        <option value="auto">Auto-detect task</option>
-        <option value="code">Code generation</option>
-        <option value="analysis">Data analysis</option>
-        <option value="spatial">Spatial / mapping</option>
-        <option value="writing">Writing / narrative</option>
-        <option value="research">Research</option>
-        <option value="debug">Debugging</option>
-        <option value="sql">SQL query</option>
-        <option value="general">General</option>
-      </select>
-      <select id="targetLLM">
-        <option value="claude">Claude (XML)</option>
-        <option value="gemini">Gemini (Markdown)</option>
-        <option value="both">Both</option>
-      </select>
-      <select id="aiModel">
-        <option value="ollama:phi3:mini">Ollama phi3 (local)</option>
-        <option value="or:google/gemma-4-26b-a4b-it:free">Gemma 4 26B (free)</option>
-        <option value="or:google/gemma-4-31b-it:free">Gemma 4 31B (free)</option>
-        <option value="or:nvidia/nemotron-3-super-120b-a12b:free">Nemotron 120B (free)</option>
-        <option value="or:minimax/minimax-m2.5:free">MiniMax M2.5 (free)</option>
-      </select>
-      <button class="ai" id="rewriteBtn" onclick="aiRewrite()">AI Rewrite</button>
+      <button class="ai" id="rewriteBtn" onclick="aiRewrite()">AI Rewrite Task</button>
       <button class="primary" onclick="forge()">Forge Prompt</button>
       <button onclick="clearAll()">Clear</button>
       <span class="token-cost" id="tokenCost"></span>
@@ -485,396 +219,75 @@ button:hover { background: var(--border); }
 
     <div class="rewrite-section" id="rewriteSection">
       <div class="rewrite-header">
-        <h3>AI Rewrite Preview</h3>
+        <h3>AI Rewrite of Task</h3>
         <div class="rewrite-actions">
           <button onclick="acceptRewrite()">Accept</button>
-          <button onclick="editRewrite()">Edit</button>
           <button onclick="dismissRewrite()">Dismiss</button>
         </div>
       </div>
       <div class="rewrite-preview" id="rewritePreview"></div>
     </div>
 
-    <h2>3. Context Presets</h2>
-    <div class="context-chips" id="contextChips">
-      <div class="chip active" data-ctx="economist" onclick="toggleChip(this)">Economist</div>
-      <div class="chip active" data-ctx="r-user" onclick="toggleChip(this)">R / tidyverse</div>
-      <div class="chip" data-ctx="sql" onclick="toggleChip(this)">SQL</div>
-      <div class="chip" data-ctx="python" onclick="toggleChip(this)">Python / pandas</div>
-      <div class="chip" data-ctx="spatial" onclick="toggleChip(this)">Spatial (sf/leaflet)</div>
-      <div class="chip" data-ctx="dc-focus" onclick="toggleChip(this)">DC Focus</div>
-      <div class="chip" data-ctx="publication" onclick="toggleChip(this)">Publication-ready</div>
-      <div class="chip" data-ctx="quarto" onclick="toggleChip(this)">Quarto output</div>
-      <div class="chip" data-ctx="concise" onclick="toggleChip(this)">Concise / no prose</div>
-      <div class="chip" data-ctx="excel" onclick="toggleChip(this)">Excel / CSV</div>
-      <div class="chip" data-ctx="dataviz" onclick="toggleChip(this)">Data visualization</div>
-      <div class="chip" data-ctx="stats" onclick="toggleChip(this)">Statistical methods</div>
-      <div class="chip" data-ctx="webscrape" onclick="toggleChip(this)">Web scraping</div>
-      <div class="chip" data-ctx="api" onclick="toggleChip(this)">API integration</div>
-      <div class="chip" data-ctx="beginner" onclick="toggleChip(this)">Explain simply</div>
-      <div class="chip" data-ctx="senior" onclick="toggleChip(this)">Senior-level</div>
-      <div class="chip" data-ctx="client" onclick="toggleChip(this)">Client deliverable</div>
-      <div class="chip" data-ctx="git" onclick="toggleChip(this)">Git / GitHub</div>
-    </div>
-    <textarea id="customContext" placeholder="Add your own context here... e.g. 'I'm building a dashboard for a healthcare client who needs HIPAA-compliant outputs. The data lives in a PostgreSQL database.'" style="min-height:70px;margin-top:8px;font-size:13px;"></textarea>
-
-    <h2>4. Prompt Completeness</h2>
     <div class="score">
-      <span style="font-size:12px;color:var(--text-dim)">Score</span>
+      <span style="font-size:11px;color:var(--text-dim)">Completeness</span>
       <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%;background:var(--red)"></div></div>
-      <span class="score-label" id="scoreLabel">0</span>
+      <span class="score-label" id="scoreLabel">0%</span>
     </div>
-    <div class="checklist" id="checklist"></div>
 
-    <div class="followups" id="followupSection" style="display:none">
-      <h3>Answer These to Improve Your Prompt</h3>
-      <div id="followupList"></div>
+    <div class="assumptions-list" id="assumptionsList" style="display:none">
+      <h4>Defaults That Will Be Applied</h4>
+      <ul id="assumptionsItems"></ul>
     </div>
   </div>
 
   <div class="panel">
-    <h2>5. Output</h2>
     <div class="tabs" id="outputTabs">
       <div class="tab active" data-tab="claude" onclick="switchTab(this)">Claude (XML)</div>
       <div class="tab" data-tab="gemini" onclick="switchTab(this)">Gemini (MD)</div>
-      <div class="tab" data-tab="json" onclick="switchTab(this)">JSON</div>
-      <div class="tab" data-tab="raw" onclick="switchTab(this)">Optimized Raw</div>
+      <div class="tab" data-tab="raw" onclick="switchTab(this)">Plain</div>
+      <select id="aiModel" style="margin-left:auto;width:auto;font-size:11px;padding:4px 8px;">
+        <option value="ollama:llama3.2">Ollama Llama 3.2</option>
+        <option value="ollama:phi3:mini">Ollama phi3</option>
+        <option value="or:google/gemma-4-26b-a4b-it:free">Gemma 4 26B</option>
+        <option value="or:google/gemma-4-31b-it:free">Gemma 4 31B</option>
+        <option value="or:nvidia/nemotron-3-super-120b-a12b:free">Nemotron 120B</option>
+      </select>
     </div>
-    <div class="output-area" id="outputArea">Enter a prompt, optionally AI Rewrite it, then Forge.</div>
+    <div class="output-area" id="outputArea">Fill in the fields on the left, then click Forge Prompt. Empty fields will use sensible defaults — flagged as <span class="assumed">[ASSUMED]</span> in the output.</div>
     <button class="copy-btn" onclick="copyOutput()">Copy to clipboard</button>
   </div>
 </div>
 
 <script>
-// ─── API KEY MANAGEMENT ───
-function getProvider() { return localStorage.getItem('promptforge_provider') || 'openrouter'; }
-function getApiKey() {
-  const provider = getProvider();
-  return localStorage.getItem(`promptforge_${provider}_key`) || '';
-}
-function hasApiKey() { return !!getApiKey(); }
-
-function updateApiStatus() {
-  const dot = document.getElementById('apiDot');
-  const label = document.getElementById('apiLabel');
-  const provider = getProvider();
-  if (hasApiKey()) {
-    dot.classList.add('connected');
-    label.textContent = `${provider === 'openrouter' ? 'OpenRouter' : 'Gemini'}: connected`;
-  } else {
-    dot.classList.remove('connected');
-    label.textContent = 'AI: click to connect';
-  }
-}
-
-function openModal() {
-  document.getElementById('apiModal').classList.add('visible');
-  const provider = getProvider();
-  document.getElementById('providerSelect').value = provider;
-  document.getElementById('apiKeyInput').value = getApiKey();
-  document.getElementById('apiKeyInput').focus();
-}
-
-function closeModal() { document.getElementById('apiModal').classList.remove('visible'); }
-
-function saveApiKey() {
-  const provider = document.getElementById('providerSelect').value;
-  const key = document.getElementById('apiKeyInput').value.trim();
-  localStorage.setItem('promptforge_provider', provider);
-  if (key) {
-    localStorage.setItem(`promptforge_${provider}_key`, key);
-  } else {
-    localStorage.removeItem(`promptforge_${provider}_key`);
-  }
-  updateApiStatus();
-  closeModal();
-}
-
-// ─── LLM API CALL ───
-const REWRITE_SYSTEM_PROMPT = `You are a prompt engineering expert. Your job is to take a user's rough, casual, or vague prompt and rewrite it into a clear, specific, actionable request — WITHOUT adding any XML tags, markdown formatting, or structural markup.
-
-Rules:
-1. Preserve the user's intent exactly. Do not add tasks they didn't ask for.
-2. Make vague language specific. "make a thing" → "create a choropleth map showing..."
-3. Infer and state the obvious requirements they left out (data source, output format, language, scope).
-4. If they mention a tool/language, keep it. If not, don't assume one.
-5. Add scope boundaries where the original is open-ended.
-6. Keep it as a natural language paragraph or short bullet list. NO XML, NO markdown headers, NO code.
-7. Keep it concise — aim for 2-5 sentences max.
-8. Do NOT wrap your response in quotes or add preamble like "Here's the improved prompt:". Just output the improved prompt directly.`;
-
-async function callLLM(prompt) {
-  const key = getApiKey();
-  if (!key) { openModal(); return null; }
-
-  const modelVal = document.getElementById('aiModel').value;
-  const colonIdx = modelVal.indexOf(':',0);
-  // Format: "ollama:model" or "or:model" or "gm:model"
-  let prefix, model;
-  if (modelVal.startsWith('ollama:')) {
-    prefix = 'ollama';
-    model = modelVal.slice(7);
-  } else {
-    prefix = modelVal.slice(0, 2);
-    model = modelVal.slice(3);
-  }
-
-  if (prefix === 'ollama') {
-    // Local Ollama
-    const res = await fetch('http://localhost:11434/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: 'system', content: REWRITE_SYSTEM_PROMPT },
-          { role: 'user', content: prompt }
-        ],
-        stream: false,
-        options: { temperature: 0.3 }
-      })
-    }).catch(err => { throw new Error('Ollama not running. Start it with: ollama serve'); });
-
-    if (!res.ok) throw new Error(`Ollama error ${res.status}`);
-    const data = await res.json();
-    return {
-      text: (data.message?.content || '').trim(),
-      tokens: { promptTokenCount: data.prompt_eval_count || 0, candidatesTokenCount: data.eval_count || 0 },
-      modelUsed: 'ollama/' + model
-    };
-  }
-
-  if (prefix === 'or') {
-    // OpenRouter — try selected model, then fallbacks
-    const fallbacks = [
-      model,
-      'google/gemma-4-26b-a4b-it:free',
-      'google/gemma-4-31b-it:free',
-      'nvidia/nemotron-3-super-120b-a12b:free',
-      'minimax/minimax-m2.5:free',
-      'poolside/laguna-m.1:free',
-      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-    ].filter((v, i, a) => a.indexOf(v) === i); // dedupe
-
-    let lastError = '';
-    for (const tryModel of fallbacks) {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${key}`,
-          'HTTP-Referer': window.location.href,
-        },
-        body: JSON.stringify({
-          model: tryModel,
-          messages: [
-            { role: 'system', content: REWRITE_SYSTEM_PROMPT },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.3,
-          max_tokens: 400,
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const text = data.choices?.[0]?.message?.content || '';
-        const usage = data.usage || {};
-        return {
-          text: text.trim(),
-          tokens: { promptTokenCount: usage.prompt_tokens, candidatesTokenCount: usage.completion_tokens },
-          modelUsed: tryModel
-        };
-      }
-
-      const errBody = await res.text().catch(() => '');
-      let errMsg = `Error ${res.status}`;
-      try { errMsg = JSON.parse(errBody)?.error?.message || errBody.slice(0, 200); } catch(e) { errMsg = errBody.slice(0, 200); }
-      lastError = `[${tryModel.split('/').pop()}] ${res.status}: ${errMsg}`;
-      if (res.status === 401 || res.status === 403) throw new Error('Invalid API key. Make sure it starts with sk-or-. Details: ' + lastError);
-      // Otherwise try next model
-    }
-    throw new Error('All free models failed.\n\n' + lastError);
-
-  } else {
-    // Gemini
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: REWRITE_SYSTEM_PROMPT }] },
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 400 }
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `Gemini error ${res.status}`);
-    }
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const usage = data.usageMetadata || {};
-    return { text: text.trim(), tokens: usage };
-  }
-}
-
-// ─── AI REWRITE ───
-let rewrittenText = '';
-
-function localRewrite(raw) {
-  let text = raw.trim();
-  text = text.charAt(0).toUpperCase() + text.slice(1);
-  if (!text.endsWith('.')) text += '.';
-
-  const ctx = getActiveContexts();
-  const additions = [];
-
-  if (!/\b(create|build|write|analyze|map|plot|calculate|find|compare|generate|debug|fix|show|make|pull|get|scrape)\b/i.test(text)) {
-    additions.push('Create');
-    text = 'Create: ' + text.charAt(0).toLowerCase() + text.slice(1);
-  }
-
-  if (ctx.includes('r-user') && !/\b(R |tidyverse|dplyr|ggplot)\b/i.test(text)) {
-    text += ' Use R with tidyverse.';
-  }
-  if (ctx.includes('spatial') && !/\b(sf|leaflet|map)\b/i.test(text)) {
-    text += ' Include a map using leaflet.';
-  }
-  if (ctx.includes('concise') && !/\b(no prose|code only|no explanation)\b/i.test(text)) {
-    text += ' Return code only, no prose.';
-  }
-  if (ctx.includes('dc-focus') && !/\b(DC|Washington|district)\b/i.test(text)) {
-    text += ' Focus on Washington, DC.';
-  }
-  if (ctx.includes('publication') && !/\b(publication|polished|professional)\b/i.test(text)) {
-    text += ' Output should be publication-quality.';
-  }
-
-  const custom = document.getElementById('customContext').value.trim();
-  if (custom) text += ' ' + custom;
-
-  return text;
-}
-
-async function aiRewrite() {
-  const raw = document.getElementById('rawInput').value.trim();
-  if (!raw) return;
-
-  const btn = document.getElementById('rewriteBtn');
-
-  // If no API key, use local rewrite
-  if (!hasApiKey()) {
-    rewrittenText = localRewrite(raw);
-    const section = document.getElementById('rewriteSection');
-    const preview = document.getElementById('rewritePreview');
-    preview.textContent = rewrittenText;
-    section.classList.add('visible');
-    const cost = document.getElementById('tokenCost');
-    cost.textContent = 'Local rewrite (no API)';
-    cost.classList.add('visible');
-    const rewriteAnalysis = analyzePrompt(rewrittenText);
-    renderChecklist(rewriteAnalysis);
-    renderFollowups(rewriteAnalysis.followups);
-    return;
-  }
-
-  btn.classList.add('loading');
-  btn.textContent = 'Rewriting...';
-
-  try {
-    const contextHints = getActiveContexts().map(k => CONTEXT_MAP[k]).join(' ');
-    const custom = document.getElementById('customContext').value.trim();
-    const allContext = [contextHints, custom].filter(Boolean).join(' ');
-    const fullPrompt = allContext
-      ? `[User context: ${allContext}]\n\nRewrite this prompt:\n${raw}`
-      : raw;
-
-    const result = await callLLM(fullPrompt);
-    if (!result) return;
-
-    rewrittenText = result.text;
-
-    const section = document.getElementById('rewriteSection');
-    const preview = document.getElementById('rewritePreview');
-    preview.textContent = rewrittenText;
-    section.classList.add('visible');
-
-    if (result.tokens) {
-      const cost = document.getElementById('tokenCost');
-      const totalTokens = (result.tokens.promptTokenCount || 0) + (result.tokens.candidatesTokenCount || 0);
-      const modelNote = result.modelUsed ? ` via ${result.modelUsed.split('/').pop()}` : '';
-      cost.textContent = `${totalTokens} tokens${modelNote} (free)`;
-      cost.classList.add('visible');
-    }
-
-    const rewriteAnalysis = analyzePrompt(rewrittenText);
-    renderChecklist(rewriteAnalysis);
-    renderFollowups(rewriteAnalysis.followups);
-
-  } catch (err) {
-    const section = document.getElementById('rewriteSection');
-    const preview = document.getElementById('rewritePreview');
-    preview.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
-    section.classList.add('visible');
-  } finally {
-    btn.classList.remove('loading');
-    btn.textContent = 'AI Rewrite';
-  }
-}
-
-function acceptRewrite() {
-  if (!rewrittenText) return;
-  document.getElementById('rawInput').value = rewrittenText;
-  document.getElementById('rewriteSection').classList.remove('visible');
-  liveAnalyze();
-}
-
-function editRewrite() {
-  if (!rewrittenText) return;
-  document.getElementById('rawInput').value = rewrittenText;
-  document.getElementById('rewriteSection').classList.remove('visible');
-  document.getElementById('rawInput').focus();
-  liveAnalyze();
-}
-
-function dismissRewrite() {
-  document.getElementById('rewriteSection').classList.remove('visible');
-  rewrittenText = '';
-}
-
-// ─── CHECKS & ANALYSIS ───
-const CHECKS = [
-  { id: 'task',       label: 'Clear task/verb',       weight: 20, test: p => /\b(create|build|write|analyze|map|plot|calculate|find|compare|generate|debug|fix|explain|summarize|scrape|pull|get|show|make|run|deploy)\b/i.test(p) },
-  { id: 'output',     label: 'Output format',          weight: 15, test: p => /\b(csv|json|html|map|chart|plot|table|dashboard|script|file|report|dataframe|tibble|leaflet|ggplot|\.R|\.qmd|\.sql)\b/i.test(p) },
-  { id: 'specifics',  label: 'Data/source specified',  weight: 15, test: p => /\b(from|using|dataset|api|url|source|database|table|column|variable|field|file)\b/i.test(p) },
-  { id: 'scope',      label: 'Scope/boundaries',       weight: 10, test: p => /\b(only|just|limit|between|from .* to|exclude|filter|where|within|specific)\b/i.test(p) },
-  { id: 'language',   label: 'Language/tool',           weight: 10, test: p => /\b(R|python|sql|javascript|leaflet|ggplot|tidyverse|dplyr|sf|tidycensus|quarto|shiny|plotly)\b/i.test(p) },
-  { id: 'context',    label: 'Context/purpose',        weight: 10, test: p => /\b(because|for|to show|to prove|to understand|to compare|purpose|goal|audience|client|presentation|blog)\b/i.test(p) },
-  { id: 'constraints',label: 'Constraints/negatives',  weight: 10, test: p => /\b(don't|do not|avoid|without|no |must not|never|instead of|prefer)\b/i.test(p) },
-  { id: 'example',    label: 'Example or reference',   weight: 10, test: p => /\b(like|similar to|example|such as|e\.g\.|for instance|styled like|based on)\b/i.test(p) },
-];
-
-const FOLLOWUP_RULES = [
-  { check: 'task',       q: "What specific action? (create, analyze, map, compare, debug...)" },
-  { check: 'output',     q: "What output format? (R script, interactive map, chart, .qmd page, SQL query, CSV...)" },
-  { check: 'specifics',  q: "What data source or input? (API, file, database table, URL...)" },
-  { check: 'scope',      q: "Any scope limits? (date range, geographic area, specific columns, row filters...)" },
-  { check: 'language',   q: "What language/tool? (R, SQL, Python, leaflet, ggplot, Quarto...)" },
-  { check: 'context',    q: "What's the purpose? (client deliverable, blog post, exploratory, presentation...)" },
-  { check: 'constraints',q: "Any things to avoid? (no base R plots, don't use Python, avoid deprecated packages...)" },
-  { check: 'example',    q: "Any reference or example of what you want it to look like?" },
-];
-
 const ROLE_MAP = {
-  'economist': 'I am a consultant economic analyst working with quantitative data and policy.',
-  'developer': 'I am a software developer building applications and tools.',
-  'student': 'I am a student learning this topic. Explain concepts clearly.',
-  'writer': 'I am a writer/content creator focused on clear communication.',
-  'researcher': 'I am an academic researcher focused on rigorous methodology and evidence.',
-  'consultant': 'I am a management consultant delivering analysis and recommendations to clients.',
-  'pm': 'I am a product manager defining requirements and coordinating technical work.',
+  'economist': 'a consultant economic analyst working with quantitative data and policy',
+  'developer': 'a software developer building applications and tools',
+  'student': 'a student learning this topic',
+  'writer': 'a writer and content creator focused on clear communication',
+  'researcher': 'an academic researcher focused on rigorous methodology',
+  'consultant': 'a management consultant delivering analysis to clients',
+  'pm': 'a product manager defining requirements',
   'custom': '',
+};
+
+const CONTEXT_MAP = {
+  'r-user': 'Use R with tidyverse conventions (dplyr, ggplot2, purrr, tidyr). Pipe with |>.',
+  'sql': 'Use SQL with CTEs over subqueries. Alias columns clearly.',
+  'python': 'Use Python with pandas, numpy, matplotlib/seaborn. Follow PEP 8.',
+  'spatial': 'Use sf for vector data and leaflet for interactive maps. Use tigris/tidycensus for census geography.',
+  'dc-focus': 'Geographic focus is Washington, DC. Prefer DC Open Data and Census/ACS data.',
+  'publication': 'Output should be publication-quality: clean labels, proper titles, source citations, professional palettes.',
+  'quarto': 'Output should be a Quarto .qmd document with code-fold: true.',
+  'concise': 'Return code only. No prose outside code blocks.',
+  'excel': 'Read/write CSV or Excel files. Use readr/readxl in R or pandas in Python.',
+  'dataviz': 'Focus on effective visualization: appropriate chart types, color-blind-safe palettes, clear axes.',
+  'stats': 'Apply rigorous statistical methods. Report effect sizes and confidence intervals. Note assumptions.',
+  'webscrape': 'Use rvest in R or BeautifulSoup/requests in Python. Respect robots.txt and rate limits.',
+  'api': 'Handle authentication, pagination, rate limits, and error responses.',
+  'beginner': 'Explain concepts clearly. Add comments to code. Assume I am learning.',
+  'senior': 'Skip basic explanations. Prioritize performance, edge cases, best practices.',
+  'client': 'Output is for a client deliverable. Polished, professional, jargon-free.',
+  'git': 'Include git workflow guidance: commit messages, branching, PRs.',
 };
 
 function getRole() {
@@ -883,246 +296,207 @@ function getRole() {
   return ROLE_MAP[sel] || '';
 }
 
-const CONTEXT_MAP = {
-  'economist': 'I am a consultant economic analyst.',
-  'r-user': 'Use R with tidyverse conventions (dplyr, ggplot2, purrr, tidyr). Pipe with |>.',
-  'sql': 'I work with SQL databases and am comfortable with complex queries, CTEs, and window functions.',
-  'python': 'Use Python with pandas, numpy, and matplotlib/seaborn. Follow PEP 8 conventions.',
-  'spatial': 'For spatial work use the sf package for vector data and leaflet for interactive maps. Use tigris/tidycensus for census geography.',
-  'dc-focus': 'Geographic focus is Washington, DC. Use DC open data (opendata.dc.gov) and Census/ACS data for demographics.',
-  'publication': 'Output should be publication-quality: clean labels, proper titles, source citations, professional color palettes.',
-  'quarto': 'Output should be a Quarto document (.qmd) that renders to HTML with code folding enabled.',
-  'concise': 'Return working code only. No explanatory prose before or after. Comments in code only where non-obvious.',
-  'excel': 'Input/output involves Excel or CSV files. Use readr or readxl in R, or pandas in Python for file I/O.',
-  'dataviz': 'Focus on clear, effective data visualization. Use appropriate chart types, color-blind-safe palettes, and proper axis labels.',
-  'stats': 'Apply rigorous statistical methods. Report effect sizes, confidence intervals, and assumptions. Flag when assumptions are violated.',
-  'webscrape': 'Task involves web scraping. Use rvest in R or BeautifulSoup/requests in Python. Respect robots.txt and rate limits.',
-  'api': 'Task involves calling external APIs. Handle authentication, pagination, rate limits, and error responses.',
-  'beginner': 'Explain concepts clearly and add comments to code. Assume I am learning and may not know intermediate concepts.',
-  'senior': 'I am an experienced developer. Skip basic explanations. Prioritize performance, edge cases, and best practices.',
-  'client': 'This output is for a client deliverable. It must be polished, professional, clearly labeled, and free of jargon.',
-  'git': 'Use git and GitHub workflows. Include commit messages, branch naming, and PR conventions where relevant.',
-};
-
-const TASK_TEMPLATES = {
-  code: {
-    role: "You are an expert software engineer and data analyst.",
-    steps: ["Identify the core requirement and edge cases", "Choose the right packages/approach", "Write clean, idiomatic code", "Add minimal comments only where logic is non-obvious"],
-    output_note: "Return a complete, runnable script. No prose outside the code block."
-  },
-  analysis: {
-    role: "You are an expert quantitative analyst and economist.",
-    steps: ["Clarify the analytical question being answered", "Identify the right data and methodology", "Perform the analysis with proper statistical rigor", "Summarize findings with appropriate caveats"],
-    output_note: "Lead with the finding, then show the methodology."
-  },
-  spatial: {
-    role: "You are an expert in geospatial analysis and cartography using R.",
-    steps: ["Identify geographic scope and resolution", "Acquire and clean spatial data", "Perform spatial joins and analysis", "Create clear, informative maps with proper projections and legends"],
-    output_note: "Use sf for vector operations. Use leaflet for interactive maps, ggplot2+geom_sf for static."
-  },
-  writing: {
-    role: "You are a sharp analytical writer who makes data-driven arguments.",
-    steps: ["Identify the core claim", "Marshal the strongest evidence", "Anticipate counterarguments", "Write tight, declarative prose"],
-    output_note: "Lead with the argument. Use data to support, not to pad."
-  },
-  research: {
-    role: "You are a thorough research analyst.",
-    steps: ["Define the research question precisely", "Identify authoritative sources", "Synthesize findings into a coherent picture", "Flag gaps and uncertainties"],
-    output_note: "Cite sources. Distinguish established facts from inference."
-  },
-  debug: {
-    role: "You are an expert debugger who diagnoses root causes.",
-    steps: ["Reproduce the exact error or unexpected behavior", "Trace the data flow to isolate the failure point", "Identify the root cause (not just the symptom)", "Provide the minimal fix with explanation"],
-    output_note: "Show the fix, explain WHY it broke, note if there are related risks."
-  },
-  sql: {
-    role: "You are an expert SQL developer and database analyst.",
-    steps: ["Understand the business question behind the query", "Identify the right tables, joins, and filters", "Write clear SQL with CTEs for readability", "Optimize for performance if dealing with large tables"],
-    output_note: "Use CTEs over subqueries. Alias all columns clearly."
-  },
-  general: {
-    role: "You are a knowledgeable assistant.",
-    steps: ["Understand what is being asked", "Provide a clear, direct answer", "Include relevant context", "Note limitations or caveats"],
-    output_note: "Be direct. Lead with the answer."
-  }
-};
-
-function detectTaskType(prompt) {
-  const p = prompt.toLowerCase();
-  if (/\b(map|choropleth|leaflet|spatial|shapefile|geojoin|coordinates|polygon|latitude|longitude|census tract|block group)\b/.test(p)) return 'spatial';
-  if (/\b(debug|error|fix|broken|fails|crash|traceback|exception|unexpected|wrong output)\b/.test(p)) return 'debug';
-  if (/\b(select|join|where|group by|having|cte|insert|update|delete from|create table)\b/.test(p)) return 'sql';
-  if (/\b(write|draft|essay|article|blog post|narrative|argument|memo|brief)\b/.test(p)) return 'writing';
-  if (/\b(research|find out|look up|what is|who is|literature|papers|sources)\b/.test(p)) return 'research';
-  if (/\b(regress|correlat|variance|mean|median|standard dev|hypothesis|p-value|confidence|t-test|anova|decompos)\b/.test(p)) return 'analysis';
-  if (/\b(script|function|code|package|library|install|import|class|def |plot|chart|graph|dashboard|ggplot|tidyverse|dplyr)\b/.test(p)) return 'code';
-  return 'general';
-}
-
 function getActiveContexts() {
   return [...document.querySelectorAll('.chip.active')].map(c => c.dataset.ctx);
 }
 
-function buildContextBlock() {
+function getContextString() {
   const role = getRole();
-  const active = getActiveContexts();
+  const tags = getActiveContexts().map(k => CONTEXT_MAP[k]);
   const custom = document.getElementById('customContext').value.trim();
   const parts = [];
-  if (role) parts.push(role);
-  parts.push(...active.map(k => CONTEXT_MAP[k]));
+  if (role) parts.push(`I am ${role}.`);
+  parts.push(...tags);
   if (custom) parts.push(custom);
   return parts.join(' ');
 }
 
-function analyzePrompt(prompt) {
-  const results = CHECKS.map(c => ({ ...c, passed: c.test(prompt) }));
-  const score = results.reduce((sum, c) => sum + (c.passed ? c.weight : 0), 0);
-  const missing = results.filter(c => !c.passed);
-  const followups = FOLLOWUP_RULES.filter(f => !results.find(c => c.id === f.check)?.passed);
-  return { results, score, missing, followups };
+const FIELDS = ['f_task', 'f_purpose', 'f_data', 'f_output', 'f_scope', 'f_avoid', 'f_example', 'f_assumptions'];
+const FIELD_META = {
+  'f_task':        { label: 'Task',                    section: 'task',          required: true,  weight: 30 },
+  'f_purpose':     { label: 'Purpose',                 section: 'purpose',       required: false, weight: 10 },
+  'f_data':        { label: 'Data source',             section: 'data',          required: false, weight: 15 },
+  'f_output':      { label: 'Output format',           section: 'output_format', required: false, weight: 15 },
+  'f_scope':       { label: 'Scope',                   section: 'scope',         required: false, weight: 10 },
+  'f_avoid':       { label: 'Things to avoid',         section: 'constraints',   required: false, weight: 10 },
+  'f_example':     { label: 'Example/reference',       section: 'examples',      required: false, weight: 5 },
+  'f_assumptions': { label: 'Ambiguities to resolve',  section: 'flag_assumptions', required: false, weight: 5 },
+};
+
+function getValue(id) {
+  const el = document.getElementById(id);
+  return (el.value || '').trim();
 }
 
-function renderChecklist(analysis) {
-  const el = document.getElementById('checklist');
-  el.innerHTML = analysis.results.map(c => `
-    <div class="check-item ${c.passed ? 'satisfied' : 'missing'}">
-      <div class="check-icon">${c.passed ? '✓' : ''}</div>
-      ${c.label}
-    </div>
-  `).join('');
-  const score = analysis.score;
+function getValueOrDefault(id) {
+  const el = document.getElementById(id);
+  const val = (el.value || '').trim();
+  if (val) return { value: val, assumed: false };
+  const def = el.dataset.default || '';
+  return { value: def, assumed: !!def };
+}
+
+function updateFieldVisuals() {
+  FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    const v = (el.value || '').trim();
+    el.classList.remove('empty', 'filled');
+    if (v) el.classList.add('filled');
+    else if (FIELD_META[id].required) el.classList.add('empty');
+  });
+}
+
+function calculateScore() {
+  let score = 0;
+  let total = 0;
+  FIELDS.forEach(id => {
+    const meta = FIELD_META[id];
+    total += meta.weight;
+    if (getValue(id)) score += meta.weight;
+  });
+  return Math.round((score / total) * 100);
+}
+
+function getAssumptions() {
+  const list = [];
+  FIELDS.forEach(id => {
+    const v = getValue(id);
+    if (!v && (document.getElementById(id).dataset.default || '').length > 0) {
+      list.push({ field: FIELD_META[id].label, default: document.getElementById(id).dataset.default });
+    }
+  });
+  return list;
+}
+
+function renderScoreAndAssumptions() {
+  const score = calculateScore();
   const fill = document.getElementById('scoreFill');
   const label = document.getElementById('scoreLabel');
   fill.style.width = score + '%';
-  fill.style.background = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--orange)' : 'var(--red)';
-  label.textContent = score;
-  label.style.color = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--orange)' : 'var(--red)';
+  fill.style.background = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--orange)' : 'var(--red)';
+  label.textContent = score + '%';
+  label.style.color = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--orange)' : 'var(--red)';
+
+  const assumptions = getAssumptions();
+  const ul = document.getElementById('assumptionsItems');
+  const section = document.getElementById('assumptionsList');
+  if (assumptions.length === 0) {
+    section.style.display = 'none';
+  } else {
+    section.style.display = 'block';
+    ul.innerHTML = assumptions.map(a => `<li><strong>${a.field}:</strong> ${a.default}</li>`).join('');
+  }
+  updateFieldVisuals();
 }
 
-function renderFollowups(followups) {
-  const section = document.getElementById('followupSection');
-  const list = document.getElementById('followupList');
-  if (followups.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  list.innerHTML = followups.map(f => `
-    <div class="followup-item" onclick="insertFollowup(this, '${f.q}')">${f.q}</div>
-  `).join('');
-}
-
-function insertFollowup(el, question) {
-  const input = document.getElementById('rawInput');
-  input.value += '\n\n' + question.replace(/\?$/, ': ');
-  input.focus();
-  input.setSelectionRange(input.value.length, input.value.length);
-  liveAnalyze();
-}
-
-function toggleChip(el) { el.classList.toggle('active'); }
-
-function liveAnalyze() {
-  const raw = document.getElementById('rawInput').value.trim();
-  if (!raw) return;
-  const analysis = analyzePrompt(raw);
-  renderChecklist(analysis);
-  renderFollowups(analysis.followups);
-}
-
-let currentOutputs = { claude: '', gemini: '', json: '', raw: '' };
+let currentOutputs = { claude: '', gemini: '', raw: '' };
 
 function forge() {
-  const raw = document.getElementById('rawInput').value.trim();
-  if (!raw) return;
-
-  let taskType = document.getElementById('taskType').value;
-  if (taskType === 'auto') taskType = detectTaskType(raw);
-
-  const template = TASK_TEMPLATES[taskType] || TASK_TEMPLATES.general;
-  const context = buildContextBlock();
-  const analysis = analyzePrompt(raw);
-
-  renderChecklist(analysis);
-  renderFollowups(analysis.followups);
-
-  // Claude XML
-  const cl = [];
-  cl.push(`<role>${template.role}</role>\n`);
-  if (context) cl.push(`<context>${context}</context>\n`);
-  cl.push(`<task>\n${raw}\n</task>\n`);
-  cl.push('<instructions>');
-  cl.push('Think through this step by step:');
-  template.steps.forEach((s, i) => cl.push(`${i + 1}. ${s}`));
-  cl.push('');
-  cl.push(template.output_note);
-  cl.push('</instructions>');
-  const missingHints = analysis.missing.slice(0, 3);
-  if (missingHints.length > 0) {
-    cl.push('\n<constraints>');
-    missingHints.forEach(m => {
-      const hint = FOLLOWUP_RULES.find(f => f.check === m.id);
-      if (hint) cl.push(`- [SPECIFY: ${hint.q}]`);
-    });
-    cl.push('</constraints>');
+  const taskVal = getValue('f_task');
+  if (!taskVal) {
+    alert('Task field is required. Describe what you want.');
+    document.getElementById('f_task').focus();
+    return;
   }
+
+  const context = getContextString();
+  const fields = {};
+  const assumed = {};
+  FIELDS.forEach(id => {
+    const r = getValueOrDefault(id);
+    fields[id] = r.value;
+    assumed[id] = r.assumed;
+  });
+
+  // Build Claude XML
+  const cl = [];
+  if (context) cl.push(`<context>\n${context}\n</context>\n`);
+  cl.push(`<task>\n${fields.f_task}\n</task>\n`);
+
+  if (fields.f_purpose) {
+    cl.push(`<purpose${assumed.f_purpose ? ' note="ASSUMED-default"' : ''}>\n${fields.f_purpose}\n</purpose>\n`);
+  }
+  if (fields.f_data) {
+    cl.push(`<data_source${assumed.f_data ? ' note="ASSUMED-default"' : ''}>\n${fields.f_data}\n</data_source>\n`);
+  }
+  if (fields.f_output) {
+    cl.push(`<output_format${assumed.f_output ? ' note="ASSUMED-default"' : ''}>\n${fields.f_output}\n</output_format>\n`);
+  }
+  if (fields.f_scope) {
+    cl.push(`<scope${assumed.f_scope ? ' note="ASSUMED-default"' : ''}>\n${fields.f_scope}\n</scope>\n`);
+  }
+  if (fields.f_avoid) {
+    cl.push(`<avoid>\n${fields.f_avoid}\n</avoid>\n`);
+  }
+  if (fields.f_example) {
+    cl.push(`<example>\n${fields.f_example}\n</example>\n`);
+  }
+  if (fields.f_assumptions) {
+    cl.push(`<flag_assumptions>\n${fields.f_assumptions}\n</flag_assumptions>\n`);
+  }
+
+  const assumedFields = Object.keys(assumed).filter(k => assumed[k]).map(k => FIELD_META[k].label);
+  const instructions = [
+    '<instructions>',
+    'Before answering:',
+    '1. Note any fields above marked with note="ASSUMED-default" — these are defaults I did not specify. Briefly state what assumption you are operating under.',
+    '2. If the task is ambiguous in a way that could lead to substantially different outputs, ASK ONE clarifying question before doing the work.',
+    '3. Otherwise, complete the task using sensible defaults and flag the choices you made at the end.',
+  ];
+  if (assumedFields.length > 0) {
+    instructions.push(`4. The following were not specified and use defaults: ${assumedFields.join(', ')}. State briefly that you are using defaults.`);
+  }
+  instructions.push('</instructions>');
+  cl.push('\n' + instructions.join('\n'));
+
   currentOutputs.claude = cl.join('\n');
 
-  // Gemini MD
+  // Gemini Markdown
   const gm = [];
-  gm.push(`**Role:** ${template.role}\n`);
   if (context) gm.push(`**Context:** ${context}\n`);
-  gm.push(`## Task\n${raw}\n`);
-  gm.push('## Approach');
-  template.steps.forEach((s, i) => gm.push(`${i + 1}. ${s}`));
-  gm.push(`\n**Output requirement:** ${template.output_note}`);
-  if (missingHints.length > 0) {
-    gm.push('\n## To Specify');
-    missingHints.forEach(m => {
-      const hint = FOLLOWUP_RULES.find(f => f.check === m.id);
-      if (hint) gm.push(`- ${hint.q}`);
-    });
-  }
+  gm.push(`## Task\n${fields.f_task}\n`);
+  if (fields.f_purpose) gm.push(`**Purpose${assumed.f_purpose ? ' (ASSUMED)' : ''}:** ${fields.f_purpose}\n`);
+  if (fields.f_data) gm.push(`**Data${assumed.f_data ? ' (ASSUMED)' : ''}:** ${fields.f_data}\n`);
+  if (fields.f_output) gm.push(`**Output${assumed.f_output ? ' (ASSUMED)' : ''}:** ${fields.f_output}\n`);
+  if (fields.f_scope) gm.push(`**Scope${assumed.f_scope ? ' (ASSUMED)' : ''}:** ${fields.f_scope}\n`);
+  if (fields.f_avoid) gm.push(`**Avoid:** ${fields.f_avoid}\n`);
+  if (fields.f_example) gm.push(`**Example:** ${fields.f_example}\n`);
+  if (fields.f_assumptions) gm.push(`**Flag these assumptions:** ${fields.f_assumptions}\n`);
+  gm.push('\n## Instructions\n');
+  gm.push('Before answering: note which fields above are marked ASSUMED — these are defaults I did not specify. Briefly state what assumption you are operating under. If the task is ambiguous, ask ONE clarifying question before doing the work. Otherwise, use sensible defaults and flag your choices at the end.');
   currentOutputs.gemini = gm.join('\n');
 
-  // JSON
-  currentOutputs.json = JSON.stringify({
-    role: template.role,
-    context: context || undefined,
-    task: raw,
-    task_type: taskType,
-    steps: template.steps,
-    output_requirement: template.output_note,
-    completeness_score: analysis.score,
-    missing: analysis.missing.map(m => m.label),
-  }, null, 2);
-
-  // Raw
+  // Plain text
   const rw = [];
-  rw.push(template.role + '\n');
-  if (context) rw.push(context + '\n');
-  rw.push(`TASK: ${raw}\n`);
-  rw.push('APPROACH:');
-  template.steps.forEach((s, i) => rw.push(`  ${i + 1}. ${s}`));
-  rw.push(`\nOUTPUT: ${template.output_note}`);
+  if (context) rw.push(`CONTEXT: ${context}\n`);
+  rw.push(`TASK: ${fields.f_task}\n`);
+  if (fields.f_purpose) rw.push(`PURPOSE${assumed.f_purpose ? ' [ASSUMED]' : ''}: ${fields.f_purpose}`);
+  if (fields.f_data) rw.push(`DATA${assumed.f_data ? ' [ASSUMED]' : ''}: ${fields.f_data}`);
+  if (fields.f_output) rw.push(`OUTPUT${assumed.f_output ? ' [ASSUMED]' : ''}: ${fields.f_output}`);
+  if (fields.f_scope) rw.push(`SCOPE${assumed.f_scope ? ' [ASSUMED]' : ''}: ${fields.f_scope}`);
+  if (fields.f_avoid) rw.push(`AVOID: ${fields.f_avoid}`);
+  if (fields.f_example) rw.push(`EXAMPLE: ${fields.f_example}`);
+  if (fields.f_assumptions) rw.push(`FLAG: ${fields.f_assumptions}`);
+  rw.push('\nNote which fields are marked ASSUMED and briefly state your interpretation. Ask one clarifying question if truly ambiguous, otherwise proceed with sensible defaults and flag your choices.');
   currentOutputs.raw = rw.join('\n');
 
-  const activeTab = document.querySelector('.tab.active').dataset.tab;
-  renderOutput(activeTab);
+  renderOutput(document.querySelector('.tab.active').dataset.tab);
 }
 
 function renderOutput(tabName) {
   const area = document.getElementById('outputArea');
-  const text = currentOutputs[tabName] || 'Enter a prompt, optionally AI Rewrite it, then Forge.';
+  const text = currentOutputs[tabName];
+  if (!text) return;
   if (tabName === 'claude') {
     area.innerHTML = text
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/&lt;(\/?)(role|context|task|instructions|constraints|output_format|example)&gt;/g, '<span class="tag">&lt;$1$2&gt;</span>')
-      .replace(/\[SPECIFY: ([^\]]+)\]/g, '<span class="attr">[SPECIFY: $1]</span>');
-  } else if (tabName === 'json') {
+      .replace(/&lt;(\/?)([a-z_]+)(\s[^&]*)?&gt;/g, '<span class="tag">&lt;$1$2$3&gt;</span>')
+      .replace(/note="ASSUMED-default"/g, '<span class="assumed">note="ASSUMED-default"</span>');
+  } else {
     area.innerHTML = text
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"(\w+)":/g, '<span class="tag">"$1"</span>:')
-      .replace(/: "(.*?)"/g, ': <span class="attr">"$1"</span>');
-  } else {
-    area.textContent = text;
+      .replace(/\(ASSUMED\)/g, '<span class="assumed">(ASSUMED)</span>')
+      .replace(/\[ASSUMED\]/g, '<span class="assumed">[ASSUMED]</span>');
   }
 }
 
@@ -1133,8 +507,8 @@ function switchTab(el) {
 }
 
 function copyOutput() {
-  const activeTab = document.querySelector('.tab.active').dataset.tab;
-  const text = currentOutputs[activeTab];
+  const tabName = document.querySelector('.tab.active').dataset.tab;
+  const text = currentOutputs[tabName];
   if (!text) return;
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector('.copy-btn');
@@ -1145,24 +519,154 @@ function copyOutput() {
 }
 
 function clearAll() {
-  document.getElementById('rawInput').value = '';
-  document.getElementById('outputArea').textContent = 'Enter a prompt, optionally AI Rewrite it, then Forge.';
-  document.getElementById('checklist').innerHTML = '';
-  document.getElementById('followupSection').style.display = 'none';
+  FIELDS.forEach(id => { document.getElementById(id).value = ''; });
+  currentOutputs = { claude: '', gemini: '', raw: '' };
+  document.getElementById('outputArea').innerHTML = 'Fill in the fields on the left, then click Forge Prompt. Empty fields will use sensible defaults — flagged as <span class="assumed">[ASSUMED]</span> in the output.';
   document.getElementById('rewriteSection').classList.remove('visible');
-  document.getElementById('scoreFill').style.width = '0%';
-  document.getElementById('scoreLabel').textContent = '0';
   document.getElementById('tokenCost').classList.remove('visible');
-  currentOutputs = { claude: '', gemini: '', json: '', raw: '' };
+  renderScoreAndAssumptions();
+}
+
+function toggleChip(el) { el.classList.toggle('active'); }
+
+// ─── API + AI REWRITE ───
+function getProvider() { return localStorage.getItem('promptforge_provider') || 'openrouter'; }
+function getApiKey() { return localStorage.getItem(`promptforge_${getProvider()}_key`) || ''; }
+function hasApiKey() { return !!getApiKey(); }
+
+function updateApiStatus() {
+  const dot = document.getElementById('apiDot');
+  const label = document.getElementById('apiLabel');
+  const model = document.getElementById('aiModel').value;
+  if (model.startsWith('ollama:')) {
+    dot.classList.add('connected');
+    label.textContent = 'Ollama (local)';
+  } else if (hasApiKey()) {
+    dot.classList.add('connected');
+    label.textContent = `${getProvider()}: connected`;
+  } else {
+    dot.classList.remove('connected');
+    label.textContent = 'click to setup';
+  }
+}
+
+function openModal() { document.getElementById('apiModal').classList.add('visible'); document.getElementById('providerSelect').value = getProvider(); document.getElementById('apiKeyInput').value = getApiKey(); }
+function closeModal() { document.getElementById('apiModal').classList.remove('visible'); }
+function saveApiKey() {
+  const provider = document.getElementById('providerSelect').value;
+  const key = document.getElementById('apiKeyInput').value.trim();
+  localStorage.setItem('promptforge_provider', provider);
+  if (key) localStorage.setItem(`promptforge_${provider}_key`, key);
+  else localStorage.removeItem(`promptforge_${provider}_key`);
+  updateApiStatus();
+  closeModal();
+}
+
+const REWRITE_SYSTEM = `You rewrite vague task descriptions into clear ones. Output ONLY plain prose (2-3 sentences). No XML, no markdown, no code, no quotes, no preamble.
+
+RULES:
+- Output 2-3 plain sentences. Nothing else.
+- Make vague language specific.
+- Add what's missing: data source, scope, output format.
+- NEVER repeat XML or structured input. Only rewrite the core ask.`;
+
+let rewrittenText = '';
+
+async function aiRewrite() {
+  const raw = getValue('f_task');
+  if (!raw) { alert('Type something in the Task field first.'); return; }
+  const btn = document.getElementById('rewriteBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Rewriting...';
+  try {
+    const result = await callLLM(raw);
+    if (!result) return;
+    rewrittenText = result.text;
+    document.getElementById('rewritePreview').textContent = rewrittenText;
+    document.getElementById('rewriteSection').classList.add('visible');
+    if (result.tokens) {
+      const c = document.getElementById('tokenCost');
+      const total = (result.tokens.promptTokenCount || 0) + (result.tokens.candidatesTokenCount || 0);
+      c.textContent = `${total} tokens via ${(result.modelUsed || 'unknown').split('/').pop()}`;
+      c.classList.add('visible');
+    }
+  } catch(err) {
+    document.getElementById('rewritePreview').innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+    document.getElementById('rewriteSection').classList.add('visible');
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = 'AI Rewrite Task';
+  }
+}
+
+function acceptRewrite() {
+  if (!rewrittenText) return;
+  document.getElementById('f_task').value = rewrittenText;
+  document.getElementById('rewriteSection').classList.remove('visible');
+  renderScoreAndAssumptions();
+}
+
+function dismissRewrite() {
+  document.getElementById('rewriteSection').classList.remove('visible');
   rewrittenText = '';
 }
 
-document.getElementById('rawInput').addEventListener('input', liveAnalyze);
-document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
+async function callLLM(prompt) {
+  const modelVal = document.getElementById('aiModel').value;
+  if (modelVal.startsWith('ollama:')) {
+    const model = modelVal.slice(7);
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: REWRITE_SYSTEM },
+          { role: 'user', content: prompt }
+        ],
+        stream: false,
+        options: { temperature: 0.3 }
+      })
+    }).catch(() => { throw new Error('Ollama not running. Start it with: ollama serve'); });
+    if (!res.ok) throw new Error(`Ollama error ${res.status}`);
+    const data = await res.json();
+    return {
+      text: (data.message?.content || '').trim(),
+      tokens: { promptTokenCount: data.prompt_eval_count, candidatesTokenCount: data.eval_count },
+      modelUsed: 'ollama/' + model
+    };
+  }
+
+  // OpenRouter
+  const key = getApiKey();
+  if (!key) { openModal(); return null; }
+  const model = modelVal.slice(3);
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}`, 'HTTP-Referer': window.location.href },
+    body: JSON.stringify({ model, messages: [{role:'system',content:REWRITE_SYSTEM},{role:'user',content:prompt}], temperature: 0.3, max_tokens: 300 })
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err.slice(0, 200));
+  }
+  const data = await res.json();
+  return {
+    text: (data.choices?.[0]?.message?.content || '').trim(),
+    tokens: { promptTokenCount: data.usage?.prompt_tokens, candidatesTokenCount: data.usage?.completion_tokens },
+    modelUsed: model
+  };
+}
+
+// Wire up listeners
+FIELDS.forEach(id => document.getElementById(id).addEventListener('input', renderScoreAndAssumptions));
 document.getElementById('roleSelect').addEventListener('change', function() {
   document.getElementById('customRole').style.display = this.value === 'custom' ? 'block' : 'none';
 });
+document.getElementById('aiModel').addEventListener('change', updateApiStatus);
+document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
 
+renderScoreAndAssumptions();
 updateApiStatus();
 </script>
 </body>
