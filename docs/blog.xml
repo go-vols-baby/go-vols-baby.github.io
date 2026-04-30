@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Data &amp; Policy</title>
+<link>https://go-vols-baby.github.io/blog.html</link>
+<atom:link href="https://go-vols-baby.github.io/blog.xml" rel="self" type="application/rss+xml"/>
+<description>Economic analysis, public data, and policy arguments</description>
+<generator>quarto-1.9.37</generator>
+<lastBuildDate>Wed, 29 Apr 2026 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>First Post</title>
+  <link>https://go-vols-baby.github.io/posts/hello/</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>This site is live. Incoming: maps, data, and arguments about DC food access, urban heat, and what happens to a city’s restaurant economy when the federal workforce contracts.</p>
+<p>Stay tuned.</p>
+
+
+<!-- -->
+
+
+ ]]></description>
+  <category>meta</category>
+  <guid>https://go-vols-baby.github.io/posts/hello/</guid>
+  <pubDate>Wed, 29 Apr 2026 04:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>

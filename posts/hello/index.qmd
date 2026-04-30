@@ -1,0 +1,9 @@
+---
+title: "First Post"
+date: "2026-04-29"
+categories: [meta]
+---
+
+This site is live. Incoming: maps, data, and arguments about DC food access, urban heat, and what happens to a city's restaurant economy when the federal workforce contracts.
+
+Stay tuned.

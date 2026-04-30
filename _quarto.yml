@@ -1,0 +1,30 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Data & Policy"
+  site-url: https://go-vols-baby.github.io
+  description: "Economic analysis, public data, and policy arguments"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: blog.qmd
+        text: Blog
+      - href: projects.qmd
+        text: Projects
+      - about.qmd
+    right:
+      - icon: github
+        href: https://github.com/go-vols-baby
+      - icon: rss
+        href: blog.xml
+
+format:
+  html:
+    theme: flatly
+    css: styles.css
+    toc: true
+    code-fold: true
+    code-tools: true

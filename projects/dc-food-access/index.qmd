@@ -1,0 +1,9 @@
+---
+title: "DC Food Access, Heat, and the Federal Workforce"
+date: "2026-04-29"
+categories: [dc, spatial, food-access]
+---
+
+An interactive exploration of food access in Washington, DC — layering grocery store locations, store hours, urban heat islands, transit coverage, demographics, and the downstream effects of federal workforce reductions on DC's food and restaurant landscape.
+
+*Work in progress.*

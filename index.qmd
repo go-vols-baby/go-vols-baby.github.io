@@ -1,0 +1,17 @@
+---
+title: "Data & Policy"
+subtitle: "Economic analysis with public data"
+---
+
+Welcome. I'm a consultant economic analyst who builds data-driven arguments about policy, markets, and cities. This site is where I publish analysis, maps, and the occasional polemic backed by numbers.
+
+## What's Here
+
+- **[Blog](blog.qmd)** — Short-form analysis and data explorations
+- **[Projects](projects.qmd)** — Longer-form interactive work (maps, dashboards, models)
+
+## Current Focus
+
+**DC Food Access & Urban Heat** — Mapping the intersection of food deserts, extreme heat, transit gaps, and the economic shock of federal workforce reductions on DC's restaurant and retail landscape.
+
+*Built with [Quarto](https://quarto.org) and [R](https://www.r-project.org). Published on GitHub Pages.*

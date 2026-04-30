@@ -1,0 +1,11 @@
+---
+title: "About"
+---
+
+Consultant economic analyst. I work with public data, statistical modeling, and spatial analysis to build arguments about policy and markets.
+
+**Tools:** R, SQL, Quarto, Leaflet, tidycensus, sf
+
+**Interests:** Urban economics, food systems, labor markets, public finance
+
+[GitHub](https://github.com/go-vols-baby)
