@@ -451,6 +451,12 @@ button:hover { background: var(--border); }
         <option value="gemini">Gemini (Markdown)</option>
         <option value="both">Both</option>
       </select>
+      <select id="geminiModel">
+        <option value="gemini-2.0-flash-lite">Flash Lite (cheapest)</option>
+        <option value="gemini-2.0-flash">Flash 2.0</option>
+        <option value="gemini-1.5-flash-latest">Flash 1.5</option>
+        <option value="gemini-1.5-flash-8b-latest">Flash 8B (tiniest)</option>
+      </select>
       <button class="ai" id="rewriteBtn" onclick="aiRewrite()">AI Rewrite</button>
       <button class="primary" onclick="forge()">Forge Prompt</button>
       <button onclick="clearAll()">Clear</button>
@@ -575,7 +581,8 @@ async function callGemini(prompt) {
   const key = getApiKey();
   if (!key) { openModal(); return null; }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`;
+  const model = document.getElementById('geminiModel').value;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
   const body = {
     system_instruction: { parts: [{ text: REWRITE_SYSTEM_PROMPT }] },
@@ -606,19 +613,72 @@ async function callGemini(prompt) {
 // ─── AI REWRITE ───
 let rewrittenText = '';
 
+function localRewrite(raw) {
+  let text = raw.trim();
+  text = text.charAt(0).toUpperCase() + text.slice(1);
+  if (!text.endsWith('.')) text += '.';
+
+  const ctx = getActiveContexts();
+  const additions = [];
+
+  if (!/\b(create|build|write|analyze|map|plot|calculate|find|compare|generate|debug|fix|show|make|pull|get|scrape)\b/i.test(text)) {
+    additions.push('Create');
+    text = 'Create: ' + text.charAt(0).toLowerCase() + text.slice(1);
+  }
+
+  if (ctx.includes('r-user') && !/\b(R |tidyverse|dplyr|ggplot)\b/i.test(text)) {
+    text += ' Use R with tidyverse.';
+  }
+  if (ctx.includes('spatial') && !/\b(sf|leaflet|map)\b/i.test(text)) {
+    text += ' Include a map using leaflet.';
+  }
+  if (ctx.includes('concise') && !/\b(no prose|code only|no explanation)\b/i.test(text)) {
+    text += ' Return code only, no prose.';
+  }
+  if (ctx.includes('dc-focus') && !/\b(DC|Washington|district)\b/i.test(text)) {
+    text += ' Focus on Washington, DC.';
+  }
+  if (ctx.includes('publication') && !/\b(publication|polished|professional)\b/i.test(text)) {
+    text += ' Output should be publication-quality.';
+  }
+
+  const custom = document.getElementById('customContext').value.trim();
+  if (custom) text += ' ' + custom;
+
+  return text;
+}
+
 async function aiRewrite() {
   const raw = document.getElementById('rawInput').value.trim();
   if (!raw) return;
-  if (!hasApiKey()) { openModal(); return; }
 
   const btn = document.getElementById('rewriteBtn');
+
+  // If no API key, use local rewrite
+  if (!hasApiKey()) {
+    rewrittenText = localRewrite(raw);
+    const section = document.getElementById('rewriteSection');
+    const preview = document.getElementById('rewritePreview');
+    preview.textContent = rewrittenText;
+    section.classList.add('visible');
+    const cost = document.getElementById('tokenCost');
+    cost.textContent = 'Local rewrite (no API)';
+    cost.classList.add('visible');
+    const rewriteAnalysis = analyzePrompt(rewrittenText);
+    renderChecklist(rewriteAnalysis);
+    renderFollowups(rewriteAnalysis.followups);
+    return;
+  }
+
   btn.classList.add('loading');
   btn.textContent = 'Rewriting...';
 
   try {
     const contextHints = getActiveContexts().map(k => CONTEXT_MAP[k]).join(' ');
-    const fullPrompt = contextHints
-      ? `[User context: ${contextHints}]\n\nRewrite this prompt:\n${raw}`
+    const custom = document.getElementById('customContext').value.trim();
+    const allContext = [contextHints, custom].filter(Boolean).join(' ');
+    const fullPrompt = allContext
+      ? `[User context: ${allContext}]\n\nRewrite this prompt:\n${raw}`
       : raw;
 
     const result = await callGemini(fullPrompt);
