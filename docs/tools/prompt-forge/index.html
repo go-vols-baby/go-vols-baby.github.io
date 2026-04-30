@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Forge</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #252836;
+  --border: #2e3140;
+  --text: #e4e4e7;
+  --text-dim: #8b8d98;
+  --accent: #6c8aff;
+  --accent-dim: #4a62b3;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --red: #f87171;
+  --font-mono: 'Consolas', 'Monaco', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  min-height: 100vh;
+}
+
+h1 {
+  grid-column: 1 / -1;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+h1 span { color: var(--text-dim); font-weight: 400; font-size: 14px; margin-left: 12px; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel h2 {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+textarea {
+  width: 100%;
+  min-height: 160px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+textarea:focus { outline: none; border-color: var(--accent); }
+
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+select, button {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+select:focus, button:focus { outline: none; border-color: var(--accent); }
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+button.primary:hover { background: var(--accent-dim); }
+button:hover { background: var(--border); }
+
+.checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.check-item.satisfied { color: var(--green); }
+.check-item.missing { color: var(--orange); }
+.check-item.critical { color: var(--red); }
+
+.check-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.check-item.satisfied .check-icon { background: var(--green); color: var(--bg); border-color: var(--green); }
+
+.followups {
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.followups h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+
+.followup-item {
+  font-size: 13px;
+  color: var(--text);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.followup-item:last-child { border-bottom: none; }
+.followup-item:hover { color: var(--accent); }
+.followup-item::before { content: "?"; color: var(--orange); font-weight: 700; flex-shrink: 0; }
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.output-area {
+  flex: 1;
+  min-height: 300px;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.output-area .tag { color: var(--accent); }
+.output-area .attr { color: var(--orange); }
+.output-area .comment { color: var(--text-dim); }
+
+.copy-btn {
+  align-self: flex-end;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: 6px;
+}
+
+.score-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s, background 0.3s;
+}
+
+.score-label {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+}
+
+.context-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.chip.active { border-color: var(--accent); color: var(--accent); background: rgba(108, 138, 255, 0.1); }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Prompt Forge <span>prompt translator &amp; optimizer</span></h1>
+
+  <div class="panel">
+    <h2>Input</h2>
+    <textarea id="rawInput" placeholder="Type your raw prompt here... e.g. 'map grocery stores in DC by income level'"></textarea>
+
+    <div class="controls">
+      <select id="taskType">
+        <option value="auto">Auto-detect task</option>
+        <option value="code">Code generation</option>
+        <option value="analysis">Data analysis</option>
+        <option value="spatial">Spatial / mapping</option>
+        <option value="writing">Writing / narrative</option>
+        <option value="research">Research</option>
+        <option value="debug">Debugging</option>
+        <option value="sql">SQL query</option>
+        <option value="general">General</option>
+      </select>
+      <select id="targetLLM">
+        <option value="claude">Claude (XML)</option>
+        <option value="gemini">Gemini (Markdown)</option>
+        <option value="both">Both</option>
+      </select>
+      <button class="primary" onclick="forge()">Forge Prompt</button>
+      <button onclick="clearAll()">Clear</button>
+    </div>
+
+    <h2>Context Presets</h2>
+    <div class="context-chips" id="contextChips">
+      <div class="chip active" data-ctx="economist" onclick="toggleChip(this)">Economist</div>
+      <div class="chip active" data-ctx="r-user" onclick="toggleChip(this)">R / tidyverse</div>
+      <div class="chip" data-ctx="sql" onclick="toggleChip(this)">SQL</div>
+      <div class="chip" data-ctx="spatial" onclick="toggleChip(this)">Spatial (sf/leaflet)</div>
+      <div class="chip" data-ctx="dc-focus" onclick="toggleChip(this)">DC Focus</div>
+      <div class="chip" data-ctx="publication" onclick="toggleChip(this)">Publication-ready</div>
+      <div class="chip" data-ctx="quarto" onclick="toggleChip(this)">Quarto output</div>
+      <div class="chip" data-ctx="concise" onclick="toggleChip(this)">Concise / no prose</div>
+    </div>
+
+    <h2>Prompt Completeness</h2>
+    <div class="score">
+      <span style="font-size:12px;color:var(--text-dim)">Score</span>
+      <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%;background:var(--red)"></div></div>
+      <span class="score-label" id="scoreLabel">0</span>
+    </div>
+    <div class="checklist" id="checklist"></div>
+
+    <div class="followups" id="followupSection" style="display:none">
+      <h3>Answer These to Improve Your Prompt</h3>
+      <div id="followupList"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Output</h2>
+    <div class="tabs" id="outputTabs">
+      <div class="tab active" data-tab="claude" onclick="switchTab(this)">Claude (XML)</div>
+      <div class="tab" data-tab="gemini" onclick="switchTab(this)">Gemini (MD)</div>
+      <div class="tab" data-tab="json" onclick="switchTab(this)">JSON</div>
+      <div class="tab" data-tab="raw" onclick="switchTab(this)">Optimized Raw</div>
+    </div>
+    <div class="output-area" id="outputArea">Forge a prompt to see output here.</div>
+    <button class="copy-btn" onclick="copyOutput()">Copy to clipboard</button>
+  </div>
+</div>
+
+<script>
+const CHECKS = [
+  { id: 'task',       label: 'Clear task/verb',       weight: 20, test: p => /\b(create|build|write|analyze|map|plot|calculate|find|compare|generate|debug|fix|explain|summarize|scrape|pull|get|show|make|run|deploy)\b/i.test(p) },
+  { id: 'output',     label: 'Output format',          weight: 15, test: p => /\b(csv|json|html|map|chart|plot|table|dashboard|script|file|report|dataframe|tibble|leaflet|ggplot|\.R|\.qmd|\.sql)\b/i.test(p) },
+  { id: 'specifics',  label: 'Data/source specified',  weight: 15, test: p => /\b(from|using|dataset|api|url|source|database|table|column|variable|field|file)\b/i.test(p) },
+  { id: 'scope',      label: 'Scope/boundaries',       weight: 10, test: p => /\b(only|just|limit|between|from .* to|exclude|filter|where|within|specific)\b/i.test(p) },
+  { id: 'language',   label: 'Language/tool',           weight: 10, test: p => /\b(R|python|sql|javascript|leaflet|ggplot|tidyverse|dplyr|sf|tidycensus|quarto|shiny|plotly)\b/i.test(p) },
+  { id: 'context',    label: 'Context/purpose',        weight: 10, test: p => /\b(because|for|to show|to prove|to understand|to compare|purpose|goal|audience|client|presentation|blog)\b/i.test(p) },
+  { id: 'constraints',label: 'Constraints/negatives',  weight: 10, test: p => /\b(don't|do not|avoid|without|no |must not|never|instead of|prefer)\b/i.test(p) },
+  { id: 'example',    label: 'Example or reference',   weight: 10, test: p => /\b(like|similar to|example|such as|e\.g\.|for instance|styled like|based on)\b/i.test(p) },
+];
+
+const FOLLOWUP_RULES = [
+  { check: 'task',       q: "What specific action? (create, analyze, map, compare, debug...)" },
+  { check: 'output',     q: "What output format? (R script, interactive map, chart, .qmd page, SQL query, CSV...)" },
+  { check: 'specifics',  q: "What data source or input? (API, file, database table, URL...)" },
+  { check: 'scope',      q: "Any scope limits? (date range, geographic area, specific columns, row filters...)" },
+  { check: 'language',   q: "What language/tool? (R, SQL, Python, leaflet, ggplot, Quarto...)" },
+  { check: 'context',    q: "What's the purpose? (client deliverable, blog post, exploratory, presentation...)" },
+  { check: 'constraints',q: "Any things to avoid? (no base R plots, don't use Python, avoid deprecated packages...)" },
+  { check: 'example',    q: "Any reference or example of what you want it to look like?" },
+];
+
+const CONTEXT_MAP = {
+  'economist': 'I am a consultant economic analyst.',
+  'r-user': 'Use R with tidyverse conventions (dplyr, ggplot2, purrr, tidyr). Pipe with |>.',
+  'sql': 'I work with SQL databases and am comfortable with complex queries, CTEs, and window functions.',
+  'spatial': 'For spatial work use the sf package for vector data and leaflet for interactive maps. Use tigris/tidycensus for census geography.',
+  'dc-focus': 'Geographic focus is Washington, DC. Use DC open data (opendata.dc.gov) and Census/ACS data for demographics.',
+  'publication': 'Output should be publication-quality: clean labels, proper titles, source citations, professional color palettes.',
+  'quarto': 'Output should be a Quarto document (.qmd) that renders to HTML with code folding enabled.',
+  'concise': 'Return working code only. No explanatory prose before or after. Comments in code only where non-obvious.',
+};
+
+const TASK_TEMPLATES = {
+  code: {
+    role: "You are an expert software engineer and data analyst.",
+    steps: ["Identify the core requirement and edge cases", "Choose the right packages/approach", "Write clean, idiomatic code", "Add minimal comments only where logic is non-obvious"],
+    output_note: "Return a complete, runnable script. No prose outside the code block."
+  },
+  analysis: {
+    role: "You are an expert quantitative analyst and economist.",
+    steps: ["Clarify the analytical question being answered", "Identify the right data and methodology", "Perform the analysis with proper statistical rigor", "Summarize findings with appropriate caveats"],
+    output_note: "Lead with the finding, then show the methodology."
+  },
+  spatial: {
+    role: "You are an expert in geospatial analysis and cartography using R.",
+    steps: ["Identify geographic scope and resolution", "Acquire and clean spatial data", "Perform spatial joins and analysis", "Create clear, informative maps with proper projections and legends"],
+    output_note: "Use sf for vector operations. Use leaflet for interactive maps, ggplot2+geom_sf for static."
+  },
+  writing: {
+    role: "You are a sharp analytical writer who makes data-driven arguments.",
+    steps: ["Identify the core claim", "Marshal the strongest evidence", "Anticipate counterarguments", "Write tight, declarative prose"],
+    output_note: "Lead with the argument. Use data to support, not to pad."
+  },
+  research: {
+    role: "You are a thorough research analyst.",
+    steps: ["Define the research question precisely", "Identify authoritative sources", "Synthesize findings into a coherent picture", "Flag gaps and uncertainties"],
+    output_note: "Cite sources. Distinguish established facts from inference."
+  },
+  debug: {
+    role: "You are an expert debugger who diagnoses root causes.",
+    steps: ["Reproduce the exact error or unexpected behavior", "Trace the data flow to isolate the failure point", "Identify the root cause (not just the symptom)", "Provide the minimal fix with explanation"],
+    output_note: "Show the fix, explain WHY it broke, note if there are related risks."
+  },
+  sql: {
+    role: "You are an expert SQL developer and database analyst.",
+    steps: ["Understand the business question behind the query", "Identify the right tables, joins, and filters", "Write clear SQL with CTEs for readability", "Optimize for performance if dealing with large tables"],
+    output_note: "Use CTEs over subqueries. Alias all columns clearly."
+  },
+  general: {
+    role: "You are a knowledgeable assistant.",
+    steps: ["Understand what is being asked", "Provide a clear, direct answer", "Include relevant context", "Note limitations or caveats"],
+    output_note: "Be direct. Lead with the answer."
+  }
+};
+
+function detectTaskType(prompt) {
+  const p = prompt.toLowerCase();
+  if (/\b(map|choropleth|leaflet|spatial|shapefile|geojoin|coordinates|polygon|latitude|longitude|census tract|block group)\b/.test(p)) return 'spatial';
+  if (/\b(debug|error|fix|broken|fails|crash|traceback|exception|unexpected|wrong output)\b/.test(p)) return 'debug';
+  if (/\b(select|join|where|group by|having|cte|insert|update|delete from|create table)\b/.test(p)) return 'sql';
+  if (/\b(write|draft|essay|article|blog post|narrative|argument|memo|brief)\b/.test(p)) return 'writing';
+  if (/\b(research|find out|look up|what is|who is|literature|papers|sources)\b/.test(p)) return 'research';
+  if (/\b(regress|correlat|variance|mean|median|standard dev|hypothesis|p-value|confidence|t-test|anova|decompos)\b/.test(p)) return 'analysis';
+  if (/\b(script|function|code|package|library|install|import|class|def |plot|chart|graph|dashboard|ggplot|tidyverse|dplyr)\b/.test(p)) return 'code';
+  return 'general';
+}
+
+function getActiveContexts() {
+  return [...document.querySelectorAll('.chip.active')].map(c => c.dataset.ctx);
+}
+
+function buildContextBlock() {
+  const active = getActiveContexts();
+  if (active.length === 0) return '';
+  return active.map(k => CONTEXT_MAP[k]).join(' ');
+}
+
+function analyzePrompt(prompt) {
+  const results = CHECKS.map(c => ({
+    ...c,
+    passed: c.test(prompt)
+  }));
+  const score = results.reduce((sum, c) => sum + (c.passed ? c.weight : 0), 0);
+  const missing = results.filter(c => !c.passed);
+  const followups = FOLLOWUP_RULES.filter(f => !results.find(c => c.id === f.check)?.passed);
+  return { results, score, missing, followups };
+}
+
+function renderChecklist(analysis) {
+  const el = document.getElementById('checklist');
+  el.innerHTML = analysis.results.map(c => `
+    <div class="check-item ${c.passed ? 'satisfied' : 'missing'}">
+      <div class="check-icon">${c.passed ? '✓' : ''}</div>
+      ${c.label}
+    </div>
+  `).join('');
+
+  const score = analysis.score;
+  const fill = document.getElementById('scoreFill');
+  const label = document.getElementById('scoreLabel');
+  fill.style.width = score + '%';
+  fill.style.background = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--orange)' : 'var(--red)';
+  label.textContent = score;
+  label.style.color = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--orange)' : 'var(--red)';
+}
+
+function renderFollowups(followups) {
+  const section = document.getElementById('followupSection');
+  const list = document.getElementById('followupList');
+  if (followups.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  list.innerHTML = followups.map(f => `
+    <div class="followup-item" onclick="insertFollowup(this, '${f.q}')">${f.q}</div>
+  `).join('');
+}
+
+function insertFollowup(el, question) {
+  const input = document.getElementById('rawInput');
+  input.value += '\n\n' + question.replace(/\?$/, ': ');
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  liveAnalyze();
+}
+
+function toggleChip(el) {
+  el.classList.toggle('active');
+}
+
+function liveAnalyze() {
+  const raw = document.getElementById('rawInput').value.trim();
+  if (!raw) return;
+  const analysis = analyzePrompt(raw);
+  renderChecklist(analysis);
+  renderFollowups(analysis.followups);
+}
+
+let currentOutputs = { claude: '', gemini: '', json: '', raw: '' };
+
+function forge() {
+  const raw = document.getElementById('rawInput').value.trim();
+  if (!raw) return;
+
+  let taskType = document.getElementById('taskType').value;
+  if (taskType === 'auto') taskType = detectTaskType(raw);
+
+  const template = TASK_TEMPLATES[taskType] || TASK_TEMPLATES.general;
+  const context = buildContextBlock();
+  const analysis = analyzePrompt(raw);
+
+  renderChecklist(analysis);
+  renderFollowups(analysis.followups);
+
+  // Build Claude XML output
+  const claudeLines = [];
+  claudeLines.push(`<role>${template.role}</role>`);
+  claudeLines.push('');
+  if (context) {
+    claudeLines.push(`<context>${context}</context>`);
+    claudeLines.push('');
+  }
+  claudeLines.push(`<task>\n${raw}\n</task>`);
+  claudeLines.push('');
+  claudeLines.push('<instructions>');
+  claudeLines.push('Think through this step by step:');
+  template.steps.forEach((s, i) => claudeLines.push(`${i + 1}. ${s}`));
+  claudeLines.push('');
+  claudeLines.push(template.output_note);
+  claudeLines.push('</instructions>');
+
+  const missingHints = analysis.missing.slice(0, 3);
+  if (missingHints.length > 0) {
+    claudeLines.push('');
+    claudeLines.push('<constraints>');
+    missingHints.forEach(m => {
+      const hint = FOLLOWUP_RULES.find(f => f.check === m.id);
+      if (hint) claudeLines.push(`- [SPECIFY: ${hint.q}]`);
+    });
+    claudeLines.push('</constraints>');
+  }
+
+  currentOutputs.claude = claudeLines.join('\n');
+
+  // Build Gemini Markdown output
+  const geminiLines = [];
+  geminiLines.push(`**Role:** ${template.role}`);
+  geminiLines.push('');
+  if (context) {
+    geminiLines.push(`**Context:** ${context}`);
+    geminiLines.push('');
+  }
+  geminiLines.push(`## Task`);
+  geminiLines.push(raw);
+  geminiLines.push('');
+  geminiLines.push('## Approach');
+  template.steps.forEach((s, i) => geminiLines.push(`${i + 1}. ${s}`));
+  geminiLines.push('');
+  geminiLines.push(`**Output requirement:** ${template.output_note}`);
+
+  if (missingHints.length > 0) {
+    geminiLines.push('');
+    geminiLines.push('## To Specify');
+    missingHints.forEach(m => {
+      const hint = FOLLOWUP_RULES.find(f => f.check === m.id);
+      if (hint) geminiLines.push(`- ${hint.q}`);
+    });
+  }
+
+  currentOutputs.gemini = geminiLines.join('\n');
+
+  // Build JSON output
+  const jsonObj = {
+    role: template.role,
+    context: context || undefined,
+    task: raw,
+    task_type: taskType,
+    steps: template.steps,
+    output_requirement: template.output_note,
+    completeness_score: analysis.score,
+    missing: analysis.missing.map(m => m.label),
+  };
+  currentOutputs.json = JSON.stringify(jsonObj, null, 2);
+
+  // Build optimized raw (plain text, no markup)
+  const rawLines = [];
+  rawLines.push(template.role);
+  rawLines.push('');
+  if (context) { rawLines.push(context); rawLines.push(''); }
+  rawLines.push(`TASK: ${raw}`);
+  rawLines.push('');
+  rawLines.push('APPROACH:');
+  template.steps.forEach((s, i) => rawLines.push(`  ${i + 1}. ${s}`));
+  rawLines.push('');
+  rawLines.push(`OUTPUT: ${template.output_note}`);
+  currentOutputs.raw = rawLines.join('\n');
+
+  // Render active tab
+  const activeTab = document.querySelector('.tab.active').dataset.tab;
+  renderOutput(activeTab);
+}
+
+function renderOutput(tabName) {
+  const area = document.getElementById('outputArea');
+  const text = currentOutputs[tabName] || 'Forge a prompt to see output here.';
+
+  if (tabName === 'claude') {
+    area.innerHTML = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/&lt;(\/?)(role|context|task|instructions|constraints|output_format|example)&gt;/g, '<span class="tag">&lt;$1$2&gt;</span>')
+      .replace(/\[SPECIFY: ([^\]]+)\]/g, '<span class="attr">[SPECIFY: $1]</span>');
+  } else if (tabName === 'json') {
+    area.innerHTML = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"(\w+)":/g, '<span class="tag">"$1"</span>:')
+      .replace(/: "(.*?)"/g, ': <span class="attr">"$1"</span>');
+  } else {
+    area.textContent = text;
+  }
+}
+
+function switchTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderOutput(el.dataset.tab);
+}
+
+function copyOutput() {
+  const activeTab = document.querySelector('.tab.active').dataset.tab;
+  const text = currentOutputs[activeTab];
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy to clipboard'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function clearAll() {
+  document.getElementById('rawInput').value = '';
+  document.getElementById('outputArea').textContent = 'Forge a prompt to see output here.';
+  document.getElementById('checklist').innerHTML = '';
+  document.getElementById('followupSection').style.display = 'none';
+  document.getElementById('scoreFill').style.width = '0%';
+  document.getElementById('scoreLabel').textContent = '0';
+  currentOutputs = { claude: '', gemini: '', json: '', raw: '' };
+}
+
+// Live analysis as you type
+document.getElementById('rawInput').addEventListener('input', liveAnalyze);
+</script>
+</body>
+</html>
