@@ -598,31 +598,54 @@ async function callLLM(prompt) {
   const [prefix, model] = [modelVal.slice(0, 2), modelVal.slice(3)];
 
   if (prefix === 'or') {
-    // OpenRouter
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: 'system', content: REWRITE_SYSTEM_PROMPT },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 400,
-      })
-    });
-    if (!res.ok) {
+    // OpenRouter — try selected model, then fallbacks
+    const fallbacks = [
+      model,
+      'google/gemma-4-26b-a4b-it:free',
+      'google/gemma-4-31b-it:free',
+      'nvidia/nemotron-3-super-120b-a12b:free',
+      'minimax/minimax-m2.5:free',
+      'poolside/laguna-m.1:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+    ].filter((v, i, a) => a.indexOf(v) === i); // dedupe
+
+    let lastError = '';
+    for (const tryModel of fallbacks) {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`,
+          'HTTP-Referer': window.location.href,
+        },
+        body: JSON.stringify({
+          model: tryModel,
+          messages: [
+            { role: 'system', content: REWRITE_SYSTEM_PROMPT },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 400,
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content || '';
+        const usage = data.usage || {};
+        return {
+          text: text.trim(),
+          tokens: { promptTokenCount: usage.prompt_tokens, candidatesTokenCount: usage.completion_tokens },
+          modelUsed: tryModel
+        };
+      }
+
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `OpenRouter error ${res.status}`);
+      lastError = err?.error?.message || `Error ${res.status}`;
+      if (res.status === 401 || res.status === 403) throw new Error('Invalid API key: ' + lastError);
+      // Otherwise try next model
     }
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    const usage = data.usage || {};
-    return { text: text.trim(), tokens: { promptTokenCount: usage.prompt_tokens, candidatesTokenCount: usage.completion_tokens } };
+    throw new Error('All free models failed. Last error: ' + lastError);
 
   } else {
     // Gemini
@@ -731,7 +754,8 @@ async function aiRewrite() {
     if (result.tokens) {
       const cost = document.getElementById('tokenCost');
       const totalTokens = (result.tokens.promptTokenCount || 0) + (result.tokens.candidatesTokenCount || 0);
-      cost.textContent = `${totalTokens} tokens used (free tier)`;
+      const modelNote = result.modelUsed ? ` via ${result.modelUsed.split('/').pop()}` : '';
+      cost.textContent = `${totalTokens} tokens${modelNote} (free)`;
       cost.classList.add('visible');
     }
 
