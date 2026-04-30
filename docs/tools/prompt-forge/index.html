@@ -411,9 +411,15 @@ button:hover { background: var(--border); }
 
 <div class="modal-overlay" id="apiModal">
   <div class="modal">
-    <h2>Gemini Flash API Key</h2>
-    <p>Get a free key from <strong>aistudio.google.com/apikey</strong>. Your key is stored in your browser only — it never touches any server except Google's API.</p>
-    <input type="password" id="apiKeyInput" placeholder="Paste your Gemini API key here...">
+    <h2>AI Provider Setup</h2>
+    <p style="margin-bottom:8px"><strong>Option 1 — OpenRouter (recommended):</strong> Go to <strong>openrouter.ai/keys</strong>, create a free account, generate a key. Free models available (no billing needed).</p>
+    <p style="margin-bottom:8px"><strong>Option 2 — Gemini:</strong> Go to <strong>aistudio.google.com/apikey</strong> and create a key.</p>
+    <p style="margin-bottom:14px">Keys are stored in your browser only.</p>
+    <select id="providerSelect" style="width:100%;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-size:13px;">
+      <option value="openrouter">OpenRouter (free models available)</option>
+      <option value="gemini">Google Gemini</option>
+    </select>
+    <input type="password" id="apiKeyInput" placeholder="Paste your API key here...">
     <div class="modal-buttons">
       <button onclick="closeModal()">Cancel</button>
       <button class="primary" onclick="saveApiKey()">Save Key</button>
@@ -451,11 +457,13 @@ button:hover { background: var(--border); }
         <option value="gemini">Gemini (Markdown)</option>
         <option value="both">Both</option>
       </select>
-      <select id="geminiModel">
-        <option value="gemini-2.0-flash-lite">Flash Lite (cheapest)</option>
-        <option value="gemini-2.0-flash">Flash 2.0</option>
-        <option value="gemini-1.5-flash-latest">Flash 1.5</option>
-        <option value="gemini-1.5-flash-8b-latest">Flash 8B (tiniest)</option>
+      <select id="aiModel">
+        <option value="or:meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B (free)</option>
+        <option value="or:mistralai/mistral-7b-instruct:free">Mistral 7B (free)</option>
+        <option value="or:google/gemma-2-9b-it:free">Gemma 2 9B (free)</option>
+        <option value="or:qwen/qwen-2.5-7b-instruct:free">Qwen 2.5 7B (free)</option>
+        <option value="gm:gemini-2.0-flash-lite">Gemini Flash Lite</option>
+        <option value="gm:gemini-2.0-flash">Gemini Flash 2.0</option>
       </select>
       <button class="ai" id="rewriteBtn" onclick="aiRewrite()">AI Rewrite</button>
       <button class="primary" onclick="forge()">Forge Prompt</button>
@@ -527,26 +535,30 @@ button:hover { background: var(--border); }
 
 <script>
 // ─── API KEY MANAGEMENT ───
-function getApiKey() { return localStorage.getItem('promptforge_gemini_key') || ''; }
+function getProvider() { return localStorage.getItem('promptforge_provider') || 'openrouter'; }
+function getApiKey() {
+  const provider = getProvider();
+  return localStorage.getItem(`promptforge_${provider}_key`) || '';
+}
 function hasApiKey() { return !!getApiKey(); }
 
 function updateApiStatus() {
   const dot = document.getElementById('apiDot');
   const label = document.getElementById('apiLabel');
-  const btn = document.getElementById('rewriteBtn');
+  const provider = getProvider();
   if (hasApiKey()) {
     dot.classList.add('connected');
-    label.textContent = 'Gemini Flash: connected';
-    btn.disabled = false;
+    label.textContent = `${provider === 'openrouter' ? 'OpenRouter' : 'Gemini'}: connected`;
   } else {
     dot.classList.remove('connected');
-    label.textContent = 'Gemini Flash: click to connect';
-    btn.disabled = false;
+    label.textContent = 'AI: click to connect';
   }
 }
 
 function openModal() {
   document.getElementById('apiModal').classList.add('visible');
+  const provider = getProvider();
+  document.getElementById('providerSelect').value = provider;
   document.getElementById('apiKeyInput').value = getApiKey();
   document.getElementById('apiKeyInput').focus();
 }
@@ -554,17 +566,19 @@ function openModal() {
 function closeModal() { document.getElementById('apiModal').classList.remove('visible'); }
 
 function saveApiKey() {
+  const provider = document.getElementById('providerSelect').value;
   const key = document.getElementById('apiKeyInput').value.trim();
+  localStorage.setItem('promptforge_provider', provider);
   if (key) {
-    localStorage.setItem('promptforge_gemini_key', key);
+    localStorage.setItem(`promptforge_${provider}_key`, key);
   } else {
-    localStorage.removeItem('promptforge_gemini_key');
+    localStorage.removeItem(`promptforge_${provider}_key`);
   }
   updateApiStatus();
   closeModal();
 }
 
-// ─── GEMINI FLASH API CALL ───
+// ─── LLM API CALL ───
 const REWRITE_SYSTEM_PROMPT = `You are a prompt engineering expert. Your job is to take a user's rough, casual, or vague prompt and rewrite it into a clear, specific, actionable request — WITHOUT adding any XML tags, markdown formatting, or structural markup.
 
 Rules:
@@ -577,37 +591,61 @@ Rules:
 7. Keep it concise — aim for 2-5 sentences max.
 8. Do NOT wrap your response in quotes or add preamble like "Here's the improved prompt:". Just output the improved prompt directly.`;
 
-async function callGemini(prompt) {
+async function callLLM(prompt) {
   const key = getApiKey();
   if (!key) { openModal(); return null; }
 
-  const model = document.getElementById('geminiModel').value;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+  const modelVal = document.getElementById('aiModel').value;
+  const [prefix, model] = [modelVal.slice(0, 2), modelVal.slice(3)];
 
-  const body = {
-    system_instruction: { parts: [{ text: REWRITE_SYSTEM_PROMPT }] },
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.3,
-      maxOutputTokens: 400,
+  if (prefix === 'or') {
+    // OpenRouter
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: REWRITE_SYSTEM_PROMPT },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 400,
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `OpenRouter error ${res.status}`);
     }
-  };
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || '';
+    const usage = data.usage || {};
+    return { text: text.trim(), tokens: { promptTokenCount: usage.prompt_tokens, candidatesTokenCount: usage.completion_tokens } };
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `API error ${res.status}`);
+  } else {
+    // Gemini
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: REWRITE_SYSTEM_PROMPT }] },
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 400 }
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `Gemini error ${res.status}`);
+    }
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const usage = data.usageMetadata || {};
+    return { text: text.trim(), tokens: usage };
   }
-
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const usage = data.usageMetadata || {};
-  return { text: text.trim(), tokens: usage };
 }
 
 // ─── AI REWRITE ───
@@ -681,7 +719,7 @@ async function aiRewrite() {
       ? `[User context: ${allContext}]\n\nRewrite this prompt:\n${raw}`
       : raw;
 
-    const result = await callGemini(fullPrompt);
+    const result = await callLLM(fullPrompt);
     if (!result) return;
 
     rewrittenText = result.text;
