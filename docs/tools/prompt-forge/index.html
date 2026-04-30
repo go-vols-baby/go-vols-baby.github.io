@@ -474,12 +474,23 @@ button:hover { background: var(--border); }
       <div class="chip active" data-ctx="economist" onclick="toggleChip(this)">Economist</div>
       <div class="chip active" data-ctx="r-user" onclick="toggleChip(this)">R / tidyverse</div>
       <div class="chip" data-ctx="sql" onclick="toggleChip(this)">SQL</div>
+      <div class="chip" data-ctx="python" onclick="toggleChip(this)">Python / pandas</div>
       <div class="chip" data-ctx="spatial" onclick="toggleChip(this)">Spatial (sf/leaflet)</div>
       <div class="chip" data-ctx="dc-focus" onclick="toggleChip(this)">DC Focus</div>
       <div class="chip" data-ctx="publication" onclick="toggleChip(this)">Publication-ready</div>
       <div class="chip" data-ctx="quarto" onclick="toggleChip(this)">Quarto output</div>
       <div class="chip" data-ctx="concise" onclick="toggleChip(this)">Concise / no prose</div>
+      <div class="chip" data-ctx="excel" onclick="toggleChip(this)">Excel / CSV</div>
+      <div class="chip" data-ctx="dataviz" onclick="toggleChip(this)">Data visualization</div>
+      <div class="chip" data-ctx="stats" onclick="toggleChip(this)">Statistical methods</div>
+      <div class="chip" data-ctx="webscrape" onclick="toggleChip(this)">Web scraping</div>
+      <div class="chip" data-ctx="api" onclick="toggleChip(this)">API integration</div>
+      <div class="chip" data-ctx="beginner" onclick="toggleChip(this)">Explain simply</div>
+      <div class="chip" data-ctx="senior" onclick="toggleChip(this)">Senior-level</div>
+      <div class="chip" data-ctx="client" onclick="toggleChip(this)">Client deliverable</div>
+      <div class="chip" data-ctx="git" onclick="toggleChip(this)">Git / GitHub</div>
     </div>
+    <textarea id="customContext" placeholder="Add your own context here... e.g. 'I'm building a dashboard for a healthcare client who needs HIPAA-compliant outputs. The data lives in a PostgreSQL database.'" style="min-height:70px;margin-top:8px;font-size:13px;"></textarea>
 
     <h2>3. Prompt Completeness</h2>
     <div class="score">
@@ -689,11 +700,21 @@ const CONTEXT_MAP = {
   'economist': 'I am a consultant economic analyst.',
   'r-user': 'Use R with tidyverse conventions (dplyr, ggplot2, purrr, tidyr). Pipe with |>.',
   'sql': 'I work with SQL databases and am comfortable with complex queries, CTEs, and window functions.',
+  'python': 'Use Python with pandas, numpy, and matplotlib/seaborn. Follow PEP 8 conventions.',
   'spatial': 'For spatial work use the sf package for vector data and leaflet for interactive maps. Use tigris/tidycensus for census geography.',
   'dc-focus': 'Geographic focus is Washington, DC. Use DC open data (opendata.dc.gov) and Census/ACS data for demographics.',
   'publication': 'Output should be publication-quality: clean labels, proper titles, source citations, professional color palettes.',
   'quarto': 'Output should be a Quarto document (.qmd) that renders to HTML with code folding enabled.',
   'concise': 'Return working code only. No explanatory prose before or after. Comments in code only where non-obvious.',
+  'excel': 'Input/output involves Excel or CSV files. Use readr or readxl in R, or pandas in Python for file I/O.',
+  'dataviz': 'Focus on clear, effective data visualization. Use appropriate chart types, color-blind-safe palettes, and proper axis labels.',
+  'stats': 'Apply rigorous statistical methods. Report effect sizes, confidence intervals, and assumptions. Flag when assumptions are violated.',
+  'webscrape': 'Task involves web scraping. Use rvest in R or BeautifulSoup/requests in Python. Respect robots.txt and rate limits.',
+  'api': 'Task involves calling external APIs. Handle authentication, pagination, rate limits, and error responses.',
+  'beginner': 'Explain concepts clearly and add comments to code. Assume I am learning and may not know intermediate concepts.',
+  'senior': 'I am an experienced developer. Skip basic explanations. Prioritize performance, edge cases, and best practices.',
+  'client': 'This output is for a client deliverable. It must be polished, professional, clearly labeled, and free of jargon.',
+  'git': 'Use git and GitHub workflows. Include commit messages, branch naming, and PR conventions where relevant.',
 };
 
 const TASK_TEMPLATES = {
@@ -757,8 +778,10 @@ function getActiveContexts() {
 
 function buildContextBlock() {
   const active = getActiveContexts();
-  if (active.length === 0) return '';
-  return active.map(k => CONTEXT_MAP[k]).join(' ');
+  const custom = document.getElementById('customContext').value.trim();
+  const parts = active.map(k => CONTEXT_MAP[k]);
+  if (custom) parts.push(custom);
+  return parts.join(' ');
 }
 
 function analyzePrompt(prompt) {
