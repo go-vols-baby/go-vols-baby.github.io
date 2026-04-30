@@ -437,7 +437,20 @@ button:hover { background: var(--border); }
   </div>
 
   <div class="panel">
-    <h2>1. Raw Input</h2>
+    <h2>1. Your Role</h2>
+    <select id="roleSelect" style="width:100%;">
+      <option value="economist">Economist / data analyst</option>
+      <option value="developer">Software developer</option>
+      <option value="student">Student / learner</option>
+      <option value="writer">Writer / content creator</option>
+      <option value="researcher">Academic researcher</option>
+      <option value="consultant">Management consultant</option>
+      <option value="pm">Product manager</option>
+      <option value="custom">Custom (type below)</option>
+    </select>
+    <input type="text" id="customRole" placeholder="e.g. 'Healthcare policy analyst at a federal agency'" style="display:none;width:100%;margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:8px 12px;">
+
+    <h2 style="margin-top:12px">2. Raw Input</h2>
     <textarea id="rawInput" placeholder="Type your messy prompt here... e.g. 'make me a map of grocery stores and income in dc'"></textarea>
 
     <div class="controls">
@@ -458,11 +471,11 @@ button:hover { background: var(--border); }
         <option value="both">Both</option>
       </select>
       <select id="aiModel">
+        <option value="ollama:phi3:mini">Ollama phi3 (local)</option>
         <option value="or:google/gemma-4-26b-a4b-it:free">Gemma 4 26B (free)</option>
         <option value="or:google/gemma-4-31b-it:free">Gemma 4 31B (free)</option>
         <option value="or:nvidia/nemotron-3-super-120b-a12b:free">Nemotron 120B (free)</option>
         <option value="or:minimax/minimax-m2.5:free">MiniMax M2.5 (free)</option>
-        <option value="or:poolside/laguna-m.1:free">Laguna M (free)</option>
       </select>
       <button class="ai" id="rewriteBtn" onclick="aiRewrite()">AI Rewrite</button>
       <button class="primary" onclick="forge()">Forge Prompt</button>
@@ -482,7 +495,7 @@ button:hover { background: var(--border); }
       <div class="rewrite-preview" id="rewritePreview"></div>
     </div>
 
-    <h2>2. Context Presets</h2>
+    <h2>3. Context Presets</h2>
     <div class="context-chips" id="contextChips">
       <div class="chip active" data-ctx="economist" onclick="toggleChip(this)">Economist</div>
       <div class="chip active" data-ctx="r-user" onclick="toggleChip(this)">R / tidyverse</div>
@@ -505,7 +518,7 @@ button:hover { background: var(--border); }
     </div>
     <textarea id="customContext" placeholder="Add your own context here... e.g. 'I'm building a dashboard for a healthcare client who needs HIPAA-compliant outputs. The data lives in a PostgreSQL database.'" style="min-height:70px;margin-top:8px;font-size:13px;"></textarea>
 
-    <h2>3. Prompt Completeness</h2>
+    <h2>4. Prompt Completeness</h2>
     <div class="score">
       <span style="font-size:12px;color:var(--text-dim)">Score</span>
       <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%;background:var(--red)"></div></div>
@@ -520,7 +533,7 @@ button:hover { background: var(--border); }
   </div>
 
   <div class="panel">
-    <h2>4. Output</h2>
+    <h2>5. Output</h2>
     <div class="tabs" id="outputTabs">
       <div class="tab active" data-tab="claude" onclick="switchTab(this)">Claude (XML)</div>
       <div class="tab" data-tab="gemini" onclick="switchTab(this)">Gemini (MD)</div>
@@ -595,7 +608,41 @@ async function callLLM(prompt) {
   if (!key) { openModal(); return null; }
 
   const modelVal = document.getElementById('aiModel').value;
-  const [prefix, model] = [modelVal.slice(0, 2), modelVal.slice(3)];
+  const colonIdx = modelVal.indexOf(':',0);
+  // Format: "ollama:model" or "or:model" or "gm:model"
+  let prefix, model;
+  if (modelVal.startsWith('ollama:')) {
+    prefix = 'ollama';
+    model = modelVal.slice(7);
+  } else {
+    prefix = modelVal.slice(0, 2);
+    model = modelVal.slice(3);
+  }
+
+  if (prefix === 'ollama') {
+    // Local Ollama
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: REWRITE_SYSTEM_PROMPT },
+          { role: 'user', content: prompt }
+        ],
+        stream: false,
+        options: { temperature: 0.3 }
+      })
+    }).catch(err => { throw new Error('Ollama not running. Start it with: ollama serve'); });
+
+    if (!res.ok) throw new Error(`Ollama error ${res.status}`);
+    const data = await res.json();
+    return {
+      text: (data.message?.content || '').trim(),
+      tokens: { promptTokenCount: data.prompt_eval_count || 0, candidatesTokenCount: data.eval_count || 0 },
+      modelUsed: 'ollama/' + model
+    };
+  }
 
   if (prefix === 'or') {
     // OpenRouter — try selected model, then fallbacks
@@ -640,12 +687,14 @@ async function callLLM(prompt) {
         };
       }
 
-      const err = await res.json().catch(() => ({}));
-      lastError = err?.error?.message || `Error ${res.status}`;
-      if (res.status === 401 || res.status === 403) throw new Error('Invalid API key: ' + lastError);
+      const errBody = await res.text().catch(() => '');
+      let errMsg = `Error ${res.status}`;
+      try { errMsg = JSON.parse(errBody)?.error?.message || errBody.slice(0, 200); } catch(e) { errMsg = errBody.slice(0, 200); }
+      lastError = `[${tryModel.split('/').pop()}] ${res.status}: ${errMsg}`;
+      if (res.status === 401 || res.status === 403) throw new Error('Invalid API key. Make sure it starts with sk-or-. Details: ' + lastError);
       // Otherwise try next model
     }
-    throw new Error('All free models failed. Last error: ' + lastError);
+    throw new Error('All free models failed.\n\n' + lastError);
 
   } else {
     // Gemini
@@ -817,6 +866,23 @@ const FOLLOWUP_RULES = [
   { check: 'example',    q: "Any reference or example of what you want it to look like?" },
 ];
 
+const ROLE_MAP = {
+  'economist': 'I am a consultant economic analyst working with quantitative data and policy.',
+  'developer': 'I am a software developer building applications and tools.',
+  'student': 'I am a student learning this topic. Explain concepts clearly.',
+  'writer': 'I am a writer/content creator focused on clear communication.',
+  'researcher': 'I am an academic researcher focused on rigorous methodology and evidence.',
+  'consultant': 'I am a management consultant delivering analysis and recommendations to clients.',
+  'pm': 'I am a product manager defining requirements and coordinating technical work.',
+  'custom': '',
+};
+
+function getRole() {
+  const sel = document.getElementById('roleSelect').value;
+  if (sel === 'custom') return document.getElementById('customRole').value.trim();
+  return ROLE_MAP[sel] || '';
+}
+
 const CONTEXT_MAP = {
   'economist': 'I am a consultant economic analyst.',
   'r-user': 'Use R with tidyverse conventions (dplyr, ggplot2, purrr, tidyr). Pipe with |>.',
@@ -898,9 +964,12 @@ function getActiveContexts() {
 }
 
 function buildContextBlock() {
+  const role = getRole();
   const active = getActiveContexts();
   const custom = document.getElementById('customContext').value.trim();
-  const parts = active.map(k => CONTEXT_MAP[k]);
+  const parts = [];
+  if (role) parts.push(role);
+  parts.push(...active.map(k => CONTEXT_MAP[k]));
   if (custom) parts.push(custom);
   return parts.join(' ');
 }
@@ -1090,6 +1159,9 @@ function clearAll() {
 
 document.getElementById('rawInput').addEventListener('input', liveAnalyze);
 document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
+document.getElementById('roleSelect').addEventListener('change', function() {
+  document.getElementById('customRole').style.display = this.value === 'custom' ? 'block' : 'none';
+});
 
 updateApiStatus();
 </script>
