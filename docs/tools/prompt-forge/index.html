@@ -17,6 +17,7 @@
   --green: #4ade80;
   --orange: #fb923c;
   --red: #f87171;
+  --purple: #a78bfa;
   --font-mono: 'Consolas', 'Monaco', monospace;
 }
 
@@ -39,16 +40,40 @@ body {
   min-height: 100vh;
 }
 
-h1 {
+.header {
   grid-column: 1 / -1;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--accent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
 }
 
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 h1 span { color: var(--text-dim); font-weight: 400; font-size: 14px; margin-left: 12px; }
+
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.api-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+.api-dot.connected { background: var(--green); }
 
 .panel {
   background: var(--surface);
@@ -70,7 +95,7 @@ h1 span { color: var(--text-dim); font-weight: 400; font-size: 14px; margin-left
 
 textarea {
   width: 100%;
-  min-height: 160px;
+  min-height: 120px;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -110,8 +135,64 @@ button.primary {
   font-weight: 600;
 }
 
+button.ai {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: var(--purple);
+  color: var(--purple);
+  font-weight: 600;
+}
+
+button.ai:hover { background: rgba(167, 139, 250, 0.25); }
+button.ai.loading { opacity: 0.6; cursor: wait; }
 button.primary:hover { background: var(--accent-dim); }
 button:hover { background: var(--border); }
+
+.rewrite-section {
+  background: var(--surface2);
+  border: 1px solid var(--purple);
+  border-radius: 6px;
+  padding: 14px;
+  display: none;
+}
+
+.rewrite-section.visible { display: block; }
+
+.rewrite-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.rewrite-header h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--purple);
+  letter-spacing: 0.05em;
+}
+
+.rewrite-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.rewrite-actions button {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+
+.rewrite-preview {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.diff-add { color: var(--green); }
+.diff-context { color: var(--text-dim); }
 
 .checklist {
   display: grid;
@@ -129,7 +210,6 @@ button:hover { background: var(--border); }
 
 .check-item.satisfied { color: var(--green); }
 .check-item.missing { color: var(--orange); }
-.check-item.critical { color: var(--red); }
 
 .check-icon {
   width: 16px;
@@ -213,7 +293,6 @@ button:hover { background: var(--border); }
 
 .output-area .tag { color: var(--accent); }
 .output-area .attr { color: var(--orange); }
-.output-area .comment { color: var(--text-dim); }
 
 .copy-btn {
   align-self: flex-end;
@@ -271,18 +350,89 @@ button:hover { background: var(--border); }
 
 .chip.active { border-color: var(--accent); color: var(--accent); background: rgba(108, 138, 255, 0.1); }
 
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-overlay.visible { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  max-width: 480px;
+  width: 90%;
+}
+
+.modal h2 { margin-bottom: 16px; color: var(--text); font-size: 16px; text-transform: none; letter-spacing: normal; }
+
+.modal p { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
+
+.modal input[type="password"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+
+.modal input:focus { outline: none; border-color: var(--accent); }
+
+.modal-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+
+.token-cost {
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 4px 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  display: none;
+}
+
+.token-cost.visible { display: inline-block; }
+
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
+
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <h2>Gemini Flash API Key</h2>
+    <p>Get a free key from <strong>aistudio.google.com/apikey</strong>. Your key is stored in your browser only — it never touches any server except Google's API.</p>
+    <input type="password" id="apiKeyInput" placeholder="Paste your Gemini API key here...">
+    <div class="modal-buttons">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="primary" onclick="saveApiKey()">Save Key</button>
+    </div>
+  </div>
+</div>
+
 <div class="app">
-  <h1>Prompt Forge <span>prompt translator &amp; optimizer</span></h1>
+  <div class="header">
+    <h1>Prompt Forge <span>AI-powered prompt translator</span></h1>
+    <div class="api-status" onclick="openModal()">
+      <div class="api-dot" id="apiDot"></div>
+      <span id="apiLabel">Gemini Flash: not connected</span>
+    </div>
+  </div>
 
   <div class="panel">
-    <h2>Input</h2>
-    <textarea id="rawInput" placeholder="Type your raw prompt here... e.g. 'map grocery stores in DC by income level'"></textarea>
+    <h2>1. Raw Input</h2>
+    <textarea id="rawInput" placeholder="Type your messy prompt here... e.g. 'make me a map of grocery stores and income in dc'"></textarea>
 
     <div class="controls">
       <select id="taskType">
@@ -301,11 +451,25 @@ button:hover { background: var(--border); }
         <option value="gemini">Gemini (Markdown)</option>
         <option value="both">Both</option>
       </select>
+      <button class="ai" id="rewriteBtn" onclick="aiRewrite()">AI Rewrite</button>
       <button class="primary" onclick="forge()">Forge Prompt</button>
       <button onclick="clearAll()">Clear</button>
+      <span class="token-cost" id="tokenCost"></span>
     </div>
 
-    <h2>Context Presets</h2>
+    <div class="rewrite-section" id="rewriteSection">
+      <div class="rewrite-header">
+        <h3>AI Rewrite Preview</h3>
+        <div class="rewrite-actions">
+          <button onclick="acceptRewrite()">Accept</button>
+          <button onclick="editRewrite()">Edit</button>
+          <button onclick="dismissRewrite()">Dismiss</button>
+        </div>
+      </div>
+      <div class="rewrite-preview" id="rewritePreview"></div>
+    </div>
+
+    <h2>2. Context Presets</h2>
     <div class="context-chips" id="contextChips">
       <div class="chip active" data-ctx="economist" onclick="toggleChip(this)">Economist</div>
       <div class="chip active" data-ctx="r-user" onclick="toggleChip(this)">R / tidyverse</div>
@@ -317,7 +481,7 @@ button:hover { background: var(--border); }
       <div class="chip" data-ctx="concise" onclick="toggleChip(this)">Concise / no prose</div>
     </div>
 
-    <h2>Prompt Completeness</h2>
+    <h2>3. Prompt Completeness</h2>
     <div class="score">
       <span style="font-size:12px;color:var(--text-dim)">Score</span>
       <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%;background:var(--red)"></div></div>
@@ -332,19 +496,173 @@ button:hover { background: var(--border); }
   </div>
 
   <div class="panel">
-    <h2>Output</h2>
+    <h2>4. Output</h2>
     <div class="tabs" id="outputTabs">
       <div class="tab active" data-tab="claude" onclick="switchTab(this)">Claude (XML)</div>
       <div class="tab" data-tab="gemini" onclick="switchTab(this)">Gemini (MD)</div>
       <div class="tab" data-tab="json" onclick="switchTab(this)">JSON</div>
       <div class="tab" data-tab="raw" onclick="switchTab(this)">Optimized Raw</div>
     </div>
-    <div class="output-area" id="outputArea">Forge a prompt to see output here.</div>
+    <div class="output-area" id="outputArea">Enter a prompt, optionally AI Rewrite it, then Forge.</div>
     <button class="copy-btn" onclick="copyOutput()">Copy to clipboard</button>
   </div>
 </div>
 
 <script>
+// ─── API KEY MANAGEMENT ───
+function getApiKey() { return localStorage.getItem('promptforge_gemini_key') || ''; }
+function hasApiKey() { return !!getApiKey(); }
+
+function updateApiStatus() {
+  const dot = document.getElementById('apiDot');
+  const label = document.getElementById('apiLabel');
+  const btn = document.getElementById('rewriteBtn');
+  if (hasApiKey()) {
+    dot.classList.add('connected');
+    label.textContent = 'Gemini Flash: connected';
+    btn.disabled = false;
+  } else {
+    dot.classList.remove('connected');
+    label.textContent = 'Gemini Flash: click to connect';
+    btn.disabled = false;
+  }
+}
+
+function openModal() {
+  document.getElementById('apiModal').classList.add('visible');
+  document.getElementById('apiKeyInput').value = getApiKey();
+  document.getElementById('apiKeyInput').focus();
+}
+
+function closeModal() { document.getElementById('apiModal').classList.remove('visible'); }
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (key) {
+    localStorage.setItem('promptforge_gemini_key', key);
+  } else {
+    localStorage.removeItem('promptforge_gemini_key');
+  }
+  updateApiStatus();
+  closeModal();
+}
+
+// ─── GEMINI FLASH API CALL ───
+const REWRITE_SYSTEM_PROMPT = `You are a prompt engineering expert. Your job is to take a user's rough, casual, or vague prompt and rewrite it into a clear, specific, actionable request — WITHOUT adding any XML tags, markdown formatting, or structural markup.
+
+Rules:
+1. Preserve the user's intent exactly. Do not add tasks they didn't ask for.
+2. Make vague language specific. "make a thing" → "create a choropleth map showing..."
+3. Infer and state the obvious requirements they left out (data source, output format, language, scope).
+4. If they mention a tool/language, keep it. If not, don't assume one.
+5. Add scope boundaries where the original is open-ended.
+6. Keep it as a natural language paragraph or short bullet list. NO XML, NO markdown headers, NO code.
+7. Keep it concise — aim for 2-5 sentences max.
+8. Do NOT wrap your response in quotes or add preamble like "Here's the improved prompt:". Just output the improved prompt directly.`;
+
+async function callGemini(prompt) {
+  const key = getApiKey();
+  if (!key) { openModal(); return null; }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+
+  const body = {
+    system_instruction: { parts: [{ text: REWRITE_SYSTEM_PROMPT }] },
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.3,
+      maxOutputTokens: 400,
+    }
+  };
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `API error ${res.status}`);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const usage = data.usageMetadata || {};
+  return { text: text.trim(), tokens: usage };
+}
+
+// ─── AI REWRITE ───
+let rewrittenText = '';
+
+async function aiRewrite() {
+  const raw = document.getElementById('rawInput').value.trim();
+  if (!raw) return;
+  if (!hasApiKey()) { openModal(); return; }
+
+  const btn = document.getElementById('rewriteBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Rewriting...';
+
+  try {
+    const contextHints = getActiveContexts().map(k => CONTEXT_MAP[k]).join(' ');
+    const fullPrompt = contextHints
+      ? `[User context: ${contextHints}]\n\nRewrite this prompt:\n${raw}`
+      : raw;
+
+    const result = await callGemini(fullPrompt);
+    if (!result) return;
+
+    rewrittenText = result.text;
+
+    const section = document.getElementById('rewriteSection');
+    const preview = document.getElementById('rewritePreview');
+    preview.textContent = rewrittenText;
+    section.classList.add('visible');
+
+    if (result.tokens) {
+      const cost = document.getElementById('tokenCost');
+      const totalTokens = (result.tokens.promptTokenCount || 0) + (result.tokens.candidatesTokenCount || 0);
+      cost.textContent = `${totalTokens} tokens used (free tier)`;
+      cost.classList.add('visible');
+    }
+
+    const rewriteAnalysis = analyzePrompt(rewrittenText);
+    renderChecklist(rewriteAnalysis);
+    renderFollowups(rewriteAnalysis.followups);
+
+  } catch (err) {
+    const section = document.getElementById('rewriteSection');
+    const preview = document.getElementById('rewritePreview');
+    preview.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+    section.classList.add('visible');
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = 'AI Rewrite';
+  }
+}
+
+function acceptRewrite() {
+  if (!rewrittenText) return;
+  document.getElementById('rawInput').value = rewrittenText;
+  document.getElementById('rewriteSection').classList.remove('visible');
+  liveAnalyze();
+}
+
+function editRewrite() {
+  if (!rewrittenText) return;
+  document.getElementById('rawInput').value = rewrittenText;
+  document.getElementById('rewriteSection').classList.remove('visible');
+  document.getElementById('rawInput').focus();
+  liveAnalyze();
+}
+
+function dismissRewrite() {
+  document.getElementById('rewriteSection').classList.remove('visible');
+  rewrittenText = '';
+}
+
+// ─── CHECKS & ANALYSIS ───
 const CHECKS = [
   { id: 'task',       label: 'Clear task/verb',       weight: 20, test: p => /\b(create|build|write|analyze|map|plot|calculate|find|compare|generate|debug|fix|explain|summarize|scrape|pull|get|show|make|run|deploy)\b/i.test(p) },
   { id: 'output',     label: 'Output format',          weight: 15, test: p => /\b(csv|json|html|map|chart|plot|table|dashboard|script|file|report|dataframe|tibble|leaflet|ggplot|\.R|\.qmd|\.sql)\b/i.test(p) },
@@ -444,10 +762,7 @@ function buildContextBlock() {
 }
 
 function analyzePrompt(prompt) {
-  const results = CHECKS.map(c => ({
-    ...c,
-    passed: c.test(prompt)
-  }));
+  const results = CHECKS.map(c => ({ ...c, passed: c.test(prompt) }));
   const score = results.reduce((sum, c) => sum + (c.passed ? c.weight : 0), 0);
   const missing = results.filter(c => !c.passed);
   const followups = FOLLOWUP_RULES.filter(f => !results.find(c => c.id === f.check)?.passed);
@@ -462,7 +777,6 @@ function renderChecklist(analysis) {
       ${c.label}
     </div>
   `).join('');
-
   const score = analysis.score;
   const fill = document.getElementById('scoreFill');
   const label = document.getElementById('scoreLabel');
@@ -475,10 +789,7 @@ function renderChecklist(analysis) {
 function renderFollowups(followups) {
   const section = document.getElementById('followupSection');
   const list = document.getElementById('followupList');
-  if (followups.length === 0) {
-    section.style.display = 'none';
-    return;
-  }
+  if (followups.length === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
   list.innerHTML = followups.map(f => `
     <div class="followup-item" onclick="insertFollowup(this, '${f.q}')">${f.q}</div>
@@ -493,9 +804,7 @@ function insertFollowup(el, question) {
   liveAnalyze();
 }
 
-function toggleChip(el) {
-  el.classList.toggle('active');
-}
+function toggleChip(el) { el.classList.toggle('active'); }
 
 function liveAnalyze() {
   const raw = document.getElementById('rawInput').value.trim();
@@ -521,65 +830,47 @@ function forge() {
   renderChecklist(analysis);
   renderFollowups(analysis.followups);
 
-  // Build Claude XML output
-  const claudeLines = [];
-  claudeLines.push(`<role>${template.role}</role>`);
-  claudeLines.push('');
-  if (context) {
-    claudeLines.push(`<context>${context}</context>`);
-    claudeLines.push('');
-  }
-  claudeLines.push(`<task>\n${raw}\n</task>`);
-  claudeLines.push('');
-  claudeLines.push('<instructions>');
-  claudeLines.push('Think through this step by step:');
-  template.steps.forEach((s, i) => claudeLines.push(`${i + 1}. ${s}`));
-  claudeLines.push('');
-  claudeLines.push(template.output_note);
-  claudeLines.push('</instructions>');
-
+  // Claude XML
+  const cl = [];
+  cl.push(`<role>${template.role}</role>\n`);
+  if (context) cl.push(`<context>${context}</context>\n`);
+  cl.push(`<task>\n${raw}\n</task>\n`);
+  cl.push('<instructions>');
+  cl.push('Think through this step by step:');
+  template.steps.forEach((s, i) => cl.push(`${i + 1}. ${s}`));
+  cl.push('');
+  cl.push(template.output_note);
+  cl.push('</instructions>');
   const missingHints = analysis.missing.slice(0, 3);
   if (missingHints.length > 0) {
-    claudeLines.push('');
-    claudeLines.push('<constraints>');
+    cl.push('\n<constraints>');
     missingHints.forEach(m => {
       const hint = FOLLOWUP_RULES.find(f => f.check === m.id);
-      if (hint) claudeLines.push(`- [SPECIFY: ${hint.q}]`);
+      if (hint) cl.push(`- [SPECIFY: ${hint.q}]`);
     });
-    claudeLines.push('</constraints>');
+    cl.push('</constraints>');
   }
+  currentOutputs.claude = cl.join('\n');
 
-  currentOutputs.claude = claudeLines.join('\n');
-
-  // Build Gemini Markdown output
-  const geminiLines = [];
-  geminiLines.push(`**Role:** ${template.role}`);
-  geminiLines.push('');
-  if (context) {
-    geminiLines.push(`**Context:** ${context}`);
-    geminiLines.push('');
-  }
-  geminiLines.push(`## Task`);
-  geminiLines.push(raw);
-  geminiLines.push('');
-  geminiLines.push('## Approach');
-  template.steps.forEach((s, i) => geminiLines.push(`${i + 1}. ${s}`));
-  geminiLines.push('');
-  geminiLines.push(`**Output requirement:** ${template.output_note}`);
-
+  // Gemini MD
+  const gm = [];
+  gm.push(`**Role:** ${template.role}\n`);
+  if (context) gm.push(`**Context:** ${context}\n`);
+  gm.push(`## Task\n${raw}\n`);
+  gm.push('## Approach');
+  template.steps.forEach((s, i) => gm.push(`${i + 1}. ${s}`));
+  gm.push(`\n**Output requirement:** ${template.output_note}`);
   if (missingHints.length > 0) {
-    geminiLines.push('');
-    geminiLines.push('## To Specify');
+    gm.push('\n## To Specify');
     missingHints.forEach(m => {
       const hint = FOLLOWUP_RULES.find(f => f.check === m.id);
-      if (hint) geminiLines.push(`- ${hint.q}`);
+      if (hint) gm.push(`- ${hint.q}`);
     });
   }
+  currentOutputs.gemini = gm.join('\n');
 
-  currentOutputs.gemini = geminiLines.join('\n');
-
-  // Build JSON output
-  const jsonObj = {
+  // JSON
+  currentOutputs.json = JSON.stringify({
     role: template.role,
     context: context || undefined,
     task: raw,
@@ -588,43 +879,33 @@ function forge() {
     output_requirement: template.output_note,
     completeness_score: analysis.score,
     missing: analysis.missing.map(m => m.label),
-  };
-  currentOutputs.json = JSON.stringify(jsonObj, null, 2);
+  }, null, 2);
 
-  // Build optimized raw (plain text, no markup)
-  const rawLines = [];
-  rawLines.push(template.role);
-  rawLines.push('');
-  if (context) { rawLines.push(context); rawLines.push(''); }
-  rawLines.push(`TASK: ${raw}`);
-  rawLines.push('');
-  rawLines.push('APPROACH:');
-  template.steps.forEach((s, i) => rawLines.push(`  ${i + 1}. ${s}`));
-  rawLines.push('');
-  rawLines.push(`OUTPUT: ${template.output_note}`);
-  currentOutputs.raw = rawLines.join('\n');
+  // Raw
+  const rw = [];
+  rw.push(template.role + '\n');
+  if (context) rw.push(context + '\n');
+  rw.push(`TASK: ${raw}\n`);
+  rw.push('APPROACH:');
+  template.steps.forEach((s, i) => rw.push(`  ${i + 1}. ${s}`));
+  rw.push(`\nOUTPUT: ${template.output_note}`);
+  currentOutputs.raw = rw.join('\n');
 
-  // Render active tab
   const activeTab = document.querySelector('.tab.active').dataset.tab;
   renderOutput(activeTab);
 }
 
 function renderOutput(tabName) {
   const area = document.getElementById('outputArea');
-  const text = currentOutputs[tabName] || 'Forge a prompt to see output here.';
-
+  const text = currentOutputs[tabName] || 'Enter a prompt, optionally AI Rewrite it, then Forge.';
   if (tabName === 'claude') {
     area.innerHTML = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/&lt;(\/?)(role|context|task|instructions|constraints|output_format|example)&gt;/g, '<span class="tag">&lt;$1$2&gt;</span>')
       .replace(/\[SPECIFY: ([^\]]+)\]/g, '<span class="attr">[SPECIFY: $1]</span>');
   } else if (tabName === 'json') {
     area.innerHTML = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"(\w+)":/g, '<span class="tag">"$1"</span>:')
       .replace(/: "(.*?)"/g, ': <span class="attr">"$1"</span>');
   } else {
@@ -652,16 +933,21 @@ function copyOutput() {
 
 function clearAll() {
   document.getElementById('rawInput').value = '';
-  document.getElementById('outputArea').textContent = 'Forge a prompt to see output here.';
+  document.getElementById('outputArea').textContent = 'Enter a prompt, optionally AI Rewrite it, then Forge.';
   document.getElementById('checklist').innerHTML = '';
   document.getElementById('followupSection').style.display = 'none';
+  document.getElementById('rewriteSection').classList.remove('visible');
   document.getElementById('scoreFill').style.width = '0%';
   document.getElementById('scoreLabel').textContent = '0';
+  document.getElementById('tokenCost').classList.remove('visible');
   currentOutputs = { claude: '', gemini: '', json: '', raw: '' };
+  rewrittenText = '';
 }
 
-// Live analysis as you type
 document.getElementById('rawInput').addEventListener('input', liveAnalyze);
+document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
+
+updateApiStatus();
 </script>
 </body>
 </html>
